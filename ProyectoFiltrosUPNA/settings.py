@@ -31,12 +31,16 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    #Apps de Django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #Apps Nuetras
+    'AppCore',
+    #Apps de terceros
 ]
 
 MIDDLEWARE = [
@@ -54,6 +58,7 @@ ROOT_URLCONF = 'ProyectoFiltrosUPNA.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        #Poner Ruta de templates. Si creo una carpeta "templates"->"nombreApp" no hace falta poner esto
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -118,3 +123,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
