@@ -1,0 +1,168 @@
+TOCAR CELERY + CHANNELS:
+	-CONFIGURAMOS CHANNELS:
+		EN ARCHIVOS DEL PROYECTO
+			settings.py
+			
+			    INSTALLED_APPS = [
+			    	    ....
+				    #Apps Django
+				    'channels',
+				    ....
+			    
+				#------------------ CONFIGURACION DE LOS CHANNELS -----------------#
+				redis_host = os.environ.get('REDIS_HOST', '127.0.0.1')
+
+				# Channel layer definitions
+				CHANNEL_LAYERS = {
+				    "default": {
+					# This example app uses the Redis channel layer implementation channels_redis
+					"BACKEND": "channels_redis.core.RedisChannelLayer",
+					"CONFIG": {
+					    "hosts": [(redis_host, 6379)],
+					},
+				    },
+				}
+
+				# ASGI_APPLICATION should be set to your outermost router
+				ASGI_APPLICATION = 'NOMBREPROYECTO.routing.application'
+
+			routing.py
+				from django.urls import path
+
+				from channels.routing import ProtocolTypeRouter, URLRouter
+
+				from NOMBREAPP.consumers import Consumidor
+
+
+				application = ProtocolTypeRouter({
+				    "websocket":
+					URLRouter([
+					    path("URLDELJAVASCRIPT/", Consumidor),
+					]),
+				})
+
+			asgi.py
+
+				"""
+				ASGI entrypoint. Configures Django and then runs the application
+				defined in the ASGI_APPLICATION setting.
+				"""
+
+				import os
+				import django
+				from channels.routing import get_default_application
+
+				os.environ.setdefault("DJANGO_SETTINGS_MODULE", "NOMBREPROYECTO.settings")
+				django.setup()
+				application = get_default_application()
+				
+			__init__.py
+				from __future__ import absolute_import, unicode_literals
+
+				# This will make sure the app is always imported when
+				# Django starts so that shared_task will use this app.
+				from .celery import app as celery_app
+
+				__all__ = ['celery_app']
+			
+		EN ARCHIVOS DE LA APP
+			consumers.py (ES COMO EL VIEWS.PY PERO DE LOS CHANNELS, ES DECIR, ES LA LOGICA DEL PROGRAM)
+				->poner logica
+				
+			apps.py
+			from django.apps import AppConfig
+			
+			
+			class AppBolsaConfig(AppConfig):
+			    name = 'AppBolsa'
+	
+	-CONFIGURAMOS CELERY:
+		EN ARCHIVOS DEL PROYECTO
+			settings.py
+				#------------------ CONFIGURACION DE CELERY -----------------#
+				CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+				CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+				CELERY_ACCEPT_CONTENT = ['application/json']
+				CELERY_TASK_SERIALIZER = 'json'
+				CELERY_RESULT_SERIALIZER = 'json'
+				CELERY_TIMEZONE = TIME_ZONE
+
+			celery.py
+				from __future__ import absolute_import, unicode_literals
+				import os
+				from celery import Celery
+
+				# set the default Django settings module for the 'celery' program.
+				os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NOMBREPROYECTO.settings')
+				app = Celery('proj')
+				app.config_from_object('django.conf:settings', namespace='CELERY')
+
+
+				# Load task modules from all registered Django app configs.
+				app.autodiscover_tasks()
+
+
+				@app.task(bind=True)
+				def debug_task(self):
+					print('Request: {0!r}'.format(self.request))
+					
+		EN ARCHIVOS DE LA APP
+			tasks.py
+				from __future__ import absolute_import, unicode_literals
+				from celery import shared_task
+				from channels.layers import get_channel_layer
+				from asgiref.sync import async_to_sync
+
+
+
+
+				@shared_task
+				def MensajeAlGrupo():
+					channel_layer = get_channel_layer()
+					async_to_sync(channel_layer.group_send)(
+					    'grupo',
+					    {"type": "chat.message", "message": "Hello World"},
+					)
+
+	-CREAR UNA PLANTILLA QUE CONECTE CON EL FRON Y BACK PARA COMUNICARSE POR WEBSOCKET
+			<!-- chat/templates/chat/room.html -->
+			<!DOCTYPE html>
+			<html>
+			<head>
+			    <meta charset="utf-8"/>
+			    <title>Chat Room</title>
+			</head>
+			<body>
+			    <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
+			    <input id="chat-message-input" type="text" size="100"/><br/>
+			    <input id="chat-message-submit" type="button" value="Send"/>
+			</body>
+			<script>
+			    var chatSocket = new WebSocket(
+				'ws://' + window.location.host + "/Crear_FPB/");
+			    chatSocket.onmessage = function(e) {
+				var data = JSON.parse(e.data);
+				var message = data['message'];
+				document.querySelector('#chat-log').value += (message + '\n');
+			    };
+			    chatSocket.onclose = function(e) {
+				console.error('Chat socket closed unexpectedly');
+			    };
+			    document.querySelector('#chat-message-input').focus();
+			    document.querySelector('#chat-message-input').onkeyup = function(e) {
+				if (e.keyCode === 13) {  // enter, return
+				    document.querySelector('#chat-message-submit').click();
+				}
+			    };
+			    document.querySelector('#chat-message-submit').onclick = function(e) {
+				var messageInputDom = document.querySelector('#chat-message-input');
+				var message = messageInputDom.value;
+				chatSocket.send(JSON.stringify({
+				    'message': message
+				}));
+				messageInputDom.value = '';
+			    };
+			</script>
+			</html>
+			
+	LLAMAR A ESTA PLANTILLA EN VIEWS.PY Y EN URLS.PY

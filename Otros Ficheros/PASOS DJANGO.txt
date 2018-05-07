@@ -1,0 +1,85 @@
+1º File-> New-> Proyect ->PyDev Django Proyect
+
+2º Aplicacion Web (APP): 
+	2.1. python manage.py startapp NOMBREAPP
+	- (Un proyecto son varias App con el mismo settings.py,urls.py)
+	- Una vez creada hay que configurar la APP en settings.py
+		INSTALLED_APPS = [
+    		'NOMBREAPP',
+
+    		
+3º Los modelos (models.py) son las tablas en nuestra base de datos para guardar objetos y todos sus atributos
+(https://docs.djangoproject.com/en/2.0/ref/models/fields/#field-types)
+    		
+4º Creamos el vinculo entre la base de datos y nuestro proyecto: 
+	4.1. python manage.py check NOMBREAPP
+	# Busca modificaciones en el models.py y las empaqueta
+	4.2. python manage.py makemigrations 
+	# Comunica las modificaciones a nuestra base de datos
+	4.3. python manage.py migrate
+
+5º Creamos superusuario: 
+	5.1. python manage.py createsuperuser
+	-Si lo quieres en español, en settings.py 
+		LANGUAGE_CODE = 'es-es'
+	-Para administrador (http://127.0.0.1:8000/admin/)
+	
+6º Vemos que tablas es pueden modificar en el sitio de administrados (admin.py)
+
+7º Personalizamos el display de admin.py
+
+8º Creamos una vista (views.py)
+	La vista es la lógica.
+	Clase basada en vista (https://docs.djangoproject.com/en/2.0/ref/class-based-views/)
+9º Controlamos la vista (urls.py)
+
+10º Configurar las plantillas en settings.py
+	TEMPLATES = [
+	    {
+	        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+	        'DIRS': [],
+	        
+11º Dentro de la aplicacion creamos nuestro primer formulario (forms.py)
+	   
+12º Añadir el formulario a una vista
+
+13º Colectar todos los archivos estaticos: python manage.py collectstatic
+
+-------------------------- NOTA ----------------------------
+CONCEPTO CRUD base de cada aplicacion web.
+
+C reate (crear) -- añadir/guardar en la base de datos -> POST
+R ead (recuperar) -- de la base de datos
+U update (actualizar) -- modificar un objeto guardado ya en la base de datos
+D elete (borra/elimina) -- de la base de datos
+
+List (listar) --listar de la base de datos
+Search (buscar) -- buscar en la base de datos
+------------------------------------------------------------
+------------------------------------------------------------
+REDIS -> CELERY
+ NOTA PARA CMD
+	netstat -ano (vemos todos los puertos)
+	netstat -ano | findstr 6379 (buscamos el puerto 6379)
+
+Inicial REDIS en el terminal de linux de windows 10:
+sudo service redis-server start
+
+Para ver que escucha escribir en el terminal de linux:
+redis-cli ping
+
+1º Creamos un archivo a la misma altura que settings donde iniciaremos celery(celery.py)
+
+2º Decimos la url donde del broker (redis en este caso) donde se conecta celery en settings.py
+	CELERY_BROKER_URL='redis://localhost:6379/0'
+
+3º Modificamos __init__.py del proyecto para que la aplicacion de celery se cree siempre que se inicie Django
+
+1º Creamos un fichero donde se iniciará la aplicación de Celery y en donde crearemos las tareas (tasks.py)
+	1.1 Luego es pasar las tareas que acabamos de crear a Redis ->$ celery -A tasks worker -l info
+	
+2º Ahora necesitamos crear el archivo donde ejecutaremos nuestras tareas recién creadas (execute.py) en Channels sera (consumers.py)
+celery worker -A Filtros.celery --loglevel=info 
+celery -A Filtros worker -l info -P eventlet
+celery worker -A Filtros.celery --loglevel=info -P eventlet
+celery -A Filtros.celery worker -l info -P eventlet    <--- USAR ESTE
