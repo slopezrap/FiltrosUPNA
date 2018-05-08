@@ -1,0 +1,23 @@
+{% extends 'AppCore/Base.html' %}
+{% load static %}
+{% block NombrePestania %}
+BLOG
+{% endblock %}
+
+{% block contenido %}
+  {% for post in posts %}
+	<div class="container marketing">
+	<hr class="featurette-divider">
+	<div class="row featurette">
+	  <div class="col-md-7">
+	    <h2 class="featurette-heading">Titulo: <span class="text-muted">{{post.title}}</span></h2>
+	    <p class="lead">Contenido: {{post.content}}</p>
+	  </div>
+	  <div class="col-md-5">
+	    <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
+	  </div>
+	</div>
+	<hr class="featurette-divider">
+	</div>
+  {% endfor %}
+{% endblock %}
