@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     #Apps Nuetras
     'AppCore',
     'AppBlog.apps.AppblogConfig', #así extiende la configuración de apps.py y usar el verbose_name para el admin
+    'AppContacto',
     #Apps de terceros
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -120,10 +122,21 @@ USE_L10N = True
 USE_TZ = True
 
 
+#Configuracion Crispy-forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+#Configuramos el correo (aqui usamos mailtrap.io)
+EMAIL_HOST = 'smtp.mailtrap.io'
+EMAIL_HOST_USER = '0215a05ad49f82'
+EMAIL_HOST_PASSWORD = '89c73ea7ef8d2a'
+EMAIL_PORT = '2525'
+EMAIL_USE_TLS = True
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-STATIC_URL = '/static/AppCore/'
+STATIC_URL = '/static/'
 
 # Media files
 MEDIA_URL = '/media/'

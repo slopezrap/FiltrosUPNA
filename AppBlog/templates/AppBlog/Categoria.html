@@ -5,7 +5,7 @@ BLOG
 {% endblock %}
 
 {% block contenido %}
-  {% for post in posts %}
+  {% for post in category.get_posts.all %}
 	<div class="container marketing">
 	<hr class="featurette-divider">
 	<div class="row featurette">
