@@ -10,14 +10,26 @@ BLOG
 	<hr class="featurette-divider">
 	<div class="row featurette">
 	  <div class="col-md-7">
-	    <h2 class="featurette-heading">Titulo: <span class="text-muted">{{post.title}}</span></h2>
-	    <p class="lead">Contenido: {{post.content}}</p>
+	  	<span class="section-heading-upper">{{post.published|date:"SHORT_DATE_FORMAT"}}</span>
+	    <h2 class="featurette-heading"><span class="text-muted">{{post.title}}</span></h2>
+	    <p class="lead">{{post.content|linebreaks}}</p>
+	    <span class="section-heading-under">Publicado por<em><b> {{post.author}} </b></em> en 
+		    {% for category in post.categories.all %}
+		    	{{category.name}}
+		    		{% if not forloop.last %}
+		    			,
+		    		{% endif %}
+		    {% endfor %}
+	    </span>
 	  </div>
 	  <div class="col-md-5">
-	    <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
+	  	{% if post.image %}
+	  		<img class="featurette-image img-fluid mx-auto" src="{{post.image.url}}" alt="Generic placeholder image">
+	  	{% else %}
+	   		<img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
+	   	{% endif %}
 	  </div>
 	</div>
-	<hr class="featurette-divider">
 	</div>
   {% endfor %}
 {% endblock %}
