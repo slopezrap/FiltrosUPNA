@@ -1,37 +1,62 @@
 {% extends 'AppCore/Base.html' %}
 {% load static %}
 {% block NombrePestania %}
-{{clave_cabecera_template}}
+{{clave_nombre_pestania}}
 {% endblock %}
 
 
 {% block contenido %}
-{% include 'AppBlog/CrearEntrada.html' %}
-  {% for post in clave_posts_template %}
+{% include 'AppBlog/BarraCrearEntradaBlog.html' %}
 	<div class="container marketing">
-	<hr class="featurette-divider">
-	<div class="row featurette">
-	  <div class="col-md-7">
-	  	<span class="section-heading-upper">{{post.published|date:"SHORT_DATE_FORMAT"}}</span>
-	    <h2 class="featurette-heading"><span class="text-muted">{{post.title}}</span></h2>
-	    <p class="lead">{{post.content|safe}}</p>
-	    <span class="section-heading-under">Publicado por<em><b> {{post.author}} </b></em> en 
-		    {% for category in post.categories.all %}
-		    <a href="{% url 'name-categoria' category.id %}" class="link">{{category.name}}</a>
-		    		{% if not forloop.last %}
-		    			,
-		    		{% endif %}
-		    {% endfor %}
-	    </span>
-	  </div>
-	  <div class="col-md-5">
-	  	{% if post.image %}
-	  		<img class="featurette-image img-fluid mx-auto" src="{{post.image.url}}" alt="Generic placeholder image">
-	  	{% else %}
-	   		<img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
+	   	{% if 'editado' in request.GET %}
+	   		<p><b>Su entrada ha sido modificada.</b></p>
 	   	{% endif %}
-	  </div>
+	   	{% if 'borrada' in request.GET %}
+	   		<p><b>Su entrada ha sido borrada.</b></p>
+	   	{% endif %}
 	</div>
-	</div>
-  {% endfor %}
+	{% if clave_entradasBlog_template.count > 0 %}
+	  {% for post in clave_entradasBlog_template %}
+		<div class="container marketing">
+			<hr class="featurette-divider">
+			<div class="row featurette">
+			  <div class="col-md-7">
+			  	<span class="section-heading-upper">Ultima actualizacion: {{post.updated|date:"SHORT_DATE_FORMAT"}}</span>
+			    <h2 class="featurette-heading"><span class="text-muted">{{post.title}}</span></h2>
+			    <p class="lead">{{post.content|safe}}</p>
+			    <span class="section-heading-under">Publicado por<em><b> {{post.author}} </b></em> en 
+		
+			    </span>
+			    <p><p>
+				<a href="{% url 'name-editarEntrada' post.id %}"><button type="button" class="btn btn-warning">Editar Entreda</button></a>
+				<a href="{% url 'name-borrarEntrada' post.id %}"><button type="button" class="btn btn-danger">Borrar Entreda</button></a>	
+				</p></p>
+			   </div>
+		  	
+			   <div class="col-md-5">
+			  	 {% if post.image %}
+			  		<img class="featurette-image img-fluid mx-auto" src="{{post.image.url}}" alt="Generic placeholder image">
+			  	 {% else %}
+			   		<img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
+			     {% endif %}
+			   </div>
+		    </div>
+		   {% if forloop.last %}
+	   			<hr class="featurette-divider">
+		  {% endif %}
+		</div>
+  	{% endfor %}
+ 	{% else %}
+ 		<div class="container marketing">
+	 		<hr class="featurette-divider">
+	 		<div class="row featurette">
+	 		  <div class="col-md-7">
+	 		    <h2 class="featurette-heading">
+	 				No hay entradas en el Blog
+	 		    </h2>
+	 			</div>
+	 		</div>
+	 		<hr class="featurette-divider">
+ 	   </div>
+	{% endif %}
 {% endblock %}

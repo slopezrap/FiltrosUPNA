@@ -30,26 +30,20 @@ CONTACTO
 	     	<form action="" method="POST">
 	     		{% csrf_token %}
 	     		<div class="container">
-	     			<div class="input-group">
-	     				{{clave_en_template.name|as_crispy_field}}
-	     			</div>
-	     			{{form.name.errors}}
+	     			{{clave_en_template.name|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 	     		
 	     		<div class="container">
-	     			<div class="input-group">
-	     				{{clave_en_template.email|as_crispy_field}}
-	     			</div>
-	     			{{form.email.errors}}
+	     			{{clave_en_template.email|as_crispy_field}}
+	     			{{clave_en_template.email.errors}}
 	     		</div>
 	     		<p></p>
 	     		
 	     		<div class="container">
-	     			<div class="input-group">
-	     				{{clave_en_template.content|as_crispy_field}}
-	     			</div>
-	     			{{form.content.errors}}
+	     			{{clave_en_template.content|as_crispy_field}}
+	     			{{clave_en_template.content.errors}}
 	     		</div>
 	     		<p></p>
 	     		

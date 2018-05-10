@@ -1,0 +1,21 @@
+{% extends 'AppCore/Base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block NombrePestania %}
+{{clave_nombre_pestania}}
+{% endblock %}
+
+
+{% block contenido %}
+{% include 'AppBlog/BarraCrearEntradaBlog.html' %}
+	     	<form action="" method="POST">
+	     		{% csrf_token %}
+	     		<div class="container">
+	     				{{clave_formulario_template.title|as_crispy_field}}
+	     				{{clave_formulario_template.content|as_crispy_field}}
+	     			    {{clave_formulario_template.image|as_crispy_field}}
+	     		<input type="submit" class="btn btn-lg btn-primary" value="Editar Entrada">
+	     		</div>
+
+	     	</form>	
+{% endblock %}

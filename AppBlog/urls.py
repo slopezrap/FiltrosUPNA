@@ -1,10 +1,14 @@
 from django.urls import path
 from . import views
-from .views import VistaBlog
+
 
 urlpatterns = [
-    path('', VistaBlog.as_view(), name='name-blog'),
-    #<int:category_id>: Un dato dinamico que se le pasa como parametro a VistaCategoria en category_id y le fuerzo a ser entero con int:
-    path('categoria/<int:category_id>/',views.VistaCategoria, name='name-categoria'),
+    
+    path('', views.VistaBlog, name='name-blog'),
+    path('crearEntrada/', views.VistaCrearEntradaBlog, name='name-crearEntrada'),
+    path('detalleEntrada/', views.VistaDetalleEntradasBlog, name='name-detalleEntrada'),
+    path('editarEntrada/<int:pk>/', views.VistaEditarEntradaBlog, name='name-editarEntrada'),
+    path('borrarEntrada/<int:pk>/', views.VistaBorrarEntradaBlog, name='name-borrarEntrada'),
+    
 ]
 

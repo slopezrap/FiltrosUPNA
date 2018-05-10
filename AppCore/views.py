@@ -12,6 +12,16 @@ def VistaHome(request):
 def VistaPortfolio(request):
     return render(request,"AppCore/Portfolio.html")
 """
+#---------------- FUNCIONES ----------------#
+def Vista404(request):
+    template = "AppCore/404.html"
+    nombre_pestania = "404"
+    if request.method == "GET":
+        contexto = {
+            "clave_nombre_pestania" : nombre_pestania,
+            "clave_error_404": "Se ha producido un error 404"
+            }
+        return render(request, template , contexto)
 
 
 #---------------- CLASES ----------------#
@@ -20,7 +30,7 @@ class VistaAbout(TemplateView):
 
     def get(self,request,*args,**kwargs):
         contexto = {
-            'clave_cabecera_template' : "ABOUT",
+            'clave_nombre_pestania' : "ABOUT",
                 }
         return render(request,self.template_name,contexto)
  
@@ -29,7 +39,7 @@ class VistaHome(TemplateView):
     
     def get(self,request,*args,**kwargs):
         contexto = {
-            'clave_cabecera_template' : "HOME",
+            'clave_nombre_pestania' : "HOME",
                 }
         return render(request,self.template_name,contexto)
 
@@ -38,7 +48,7 @@ class VistaPortfolio(TemplateView):
    
     def get(self,request,*args,**kwargs):
         contexto = {
-            'clave_cabecera_template' : "PORTFOLIO",
+            'clave_nombre_pestania' : "PORTFOLIO",
                 }
         return render(request,self.template_name,contexto)
 
