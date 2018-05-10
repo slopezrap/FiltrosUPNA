@@ -1,8 +1,8 @@
 from django.urls import path
-from . import views
+from .views import VistaAbout, VistaHome, VistaPortfolio
 
 urlpatterns = [
-    path('', views.VistaHome, name='name-home'),
-    path('about-us/', views.VistaAbout, name='name-about'),
-    path('portfolio/', views.VistaPortfolio, name='name-portfolio'),
+    path('', VistaHome.as_view(), name='name-home'),
+    path('about-us/', VistaAbout.as_view(), name='name-about'),
+    path('portfolio/', VistaPortfolio.as_view(), name='name-portfolio'),
 ]

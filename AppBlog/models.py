@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.timezone import now
 from django.contrib.auth.models import User #modelo que contiene todos los usuarios del panel de administrador
+from ckeditor.fields import RichTextField #Aplicacion para visualizarlo mejor en el panel de administrador
+
 # Create your models here.
 #Modelo para las categorias: Category
 class Category(models.Model):
@@ -21,7 +23,7 @@ class Category(models.Model):
 #Modelo para las entradas: Post
 class Post(models.Model):
     title = models.CharField(max_length=200, verbose_name = "Título")
-    content = models.TextField(verbose_name = "Contenido")
+    content = RichTextField(verbose_name = "Contenido")
     published = models.DateTimeField(verbose_name = "Fecha de publicación",default=now)
     #blank=True: Le decimos que puede ser un campo que este en blanco
     #null=True: Le decimos que puede ser un campo nullo sin nada
