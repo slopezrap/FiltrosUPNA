@@ -25,7 +25,8 @@ def VistaSignUp(request):
                 last_name = formulario.cleaned_data.get("last_name")
                 email = formulario.cleaned_data.get("email")
                 password1 = formulario.cleaned_data.get("password1")
-                user = User.objects.create_user(username=username,first_name=first_name,last_name=last_name,email=email,password=password1)
+                User.objects.create_user(username=username,first_name=first_name,last_name=last_name,email=email,password=password1)
+                user = authenticate(username=username, password=password1)
                 login(request,user)
                 return redirect(reverse('name-home')) 
             else:
@@ -53,15 +54,12 @@ def VistaLogin(request):
         return render(request, template , contexto)  
     
     if request.method == "POST":
-        formulario = FormularioUserLogin(data=request.POST)
-        print(formulario.is_valid())
+        formulario = FormularioUserLogin(request.POST)
         if formulario.is_valid(): 
             #Uso formulario.cleaned_data.get en lugar de request.POST.get porque el primero chequea la condicion del formulario
             username = formulario.cleaned_data.get("username")
-            password1 = formulario.cleaned_data.get("password1")
-            print(password1)
-            user = authenticate(username=username, password1=password1)
-            print(user)
+            password = formulario.cleaned_data.get("password")
+            user = authenticate(username=username, password=password)
             login(request,user)
             #print(request.user.is_authenticated)
             return redirect(reverse('name-home')) 
