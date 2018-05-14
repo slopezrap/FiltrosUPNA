@@ -30,7 +30,7 @@ class VistaAbout(TemplateView):
 
     def get(self,request,*args,**kwargs):
         contexto = {
-            'clave_nombre_pestania' : "ABOUT",
+            'clave_nombre_pestania' : "About",
                 }
         return render(request,self.template_name,contexto)
  
@@ -39,7 +39,7 @@ class VistaHome(TemplateView):
     
     def get(self,request,*args,**kwargs):
         contexto = {
-            'clave_nombre_pestania' : "HOME",
+            'clave_nombre_pestania' : "Inicio",
                 }
         return render(request,self.template_name,contexto)
 
@@ -48,7 +48,7 @@ class VistaPortfolio(TemplateView):
    
     def get(self,request,*args,**kwargs):
         contexto = {
-            'clave_nombre_pestania' : "PORTFOLIO",
+            'clave_nombre_pestania' : "Portfolio",
                 }
         return render(request,self.template_name,contexto)
 

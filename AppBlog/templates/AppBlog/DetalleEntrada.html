@@ -1,0 +1,63 @@
+{% extends 'AppCore/Base.html' %}
+{% load static %}
+{% block NombrePestania %}
+{{clave_nombre_pestania}}
+{% endblock %}
+
+
+{% block contenido %}
+{% include 'AppBlog/BarraCrearEntradaBlog.html' %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<div class="container marketing">
+	   	{% if 'editado' in request.GET %}
+	   		<p><b>Su entrada ha sido modificada.</b></p>
+	   	{% endif %}
+	   	{% if 'borrada' in request.GET %}
+	   		<p><b>Su entrada ha sido borrada.</b></p>
+	   	{% endif %}
+	</div>
+	{% if clave_entradasBlog_template.count > 0 %}
+	  {% for post in clave_entradasBlog_template %}
+		<div class="container marketing">
+			<hr class="featurette-divider">
+			<div class="row featurette">
+			  <div class="col-md-7">
+			  	<span class="section-heading-upper">Última actualización: {{post.updated|date:"SHORT_DATE_FORMAT"}}</span>
+			    <h2 class="featurette-heading"><span class="text-muted">{{post.title}}</span></h2>
+			    <p class="lead">{{post.content|safe}}</p>
+			    <span class="section-heading-under">
+			    Publicado por
+			    	<em>
+				    	<b>
+				    		<a>{{ post.author }}</a>
+				     	</b>
+			       </em>	       
+			    </span>
+			   </div>
+			   <div class="col-md-5">
+			  	 {% if post.image %}
+			  		<img class="featurette-image img-fluid mx-auto" src="{{post.image.url}}" alt="Generic placeholder image">
+			  	 {% else %}
+			   		<img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
+			     {% endif %}
+			   </div>
+		    </div>
+		   {% if forloop.last %}
+	   			<hr class="featurette-divider">
+		  {% endif %}
+		</div>
+  	{% endfor %}
+ 	{% else %}
+ 		<div class="container marketing">
+	 		<hr class="featurette-divider">
+	 		<div class="row featurette">
+	 		  <div class="col-md-7">
+	 		    <h2 class="featurette-heading">
+	 				No existe ese autor.
+	 		    </h2>
+	 			</div>
+	 		</div>
+	 		<hr class="featurette-divider">
+ 	   </div>
+	{% endif %}
+{% endblock %}

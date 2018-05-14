@@ -1,8 +1,10 @@
-{% if request.user.is_staff %}
+{% if request.user.is_staff or request.user.is_authenticated %}
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container">
-    <a class="navbar-brand" href="/admin/">Administrador</a>
+   {% if user.is_active and user.is_staff %}
+   <a class="navbar-brand" href="/admin/">Administrador</a>
+   {% endif %}
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nep" aria-controls="nep" aria-expanded="false">
       <span class="navbar-toggler-icon"></span>
     </button>

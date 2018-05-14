@@ -1,0 +1,22 @@
+{% extends 'AppCore/Base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block NombrePestania %}
+{{clave_nombre_pestania}}
+{% endblock %}
+
+
+{% block contenido %}
+{% include 'AppBlog/BarraCrearEntradaBlog.html' %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	     	<form action="" method="POST">
+	     		{% csrf_token %}
+	     		<div class="container">
+	     		    <p></p>
+					<p>¿Estas seguros que quieres borrar la entrada del blog?</p>
+	     		<input type="submit" class="btn btn-lg btn-primary btn-sm" value="Confirmar">
+	     		<a href="{% url 'name-blog'  %}" class="btn btn-danger btn-sm">Cancelar</a>
+	     		</div>
+
+	     	</form>	
+{% endblock %}

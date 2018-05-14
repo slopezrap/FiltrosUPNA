@@ -7,6 +7,7 @@
 
 {% block contenido %}
 {% include 'AppBlog/BarraCrearEntradaBlog.html' %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<div class="container marketing">
 	   	{% if 'editado' in request.GET %}
 	   		<p><b>Su entrada ha sido modificada.</b></p>
@@ -21,17 +22,23 @@
 			<hr class="featurette-divider">
 			<div class="row featurette">
 			  <div class="col-md-7">
-			  	<span class="section-heading-upper">Ultima actualizacion: {{post.updated|date:"SHORT_DATE_FORMAT"}}</span>
+			  	<span class="section-heading-upper">Última actualización: {{post.updated|date:"SHORT_DATE_FORMAT"}}</span>
 			    <h2 class="featurette-heading"><span class="text-muted">{{post.title}}</span></h2>
 			    <p class="lead">{{post.content|safe}}</p>
-			    <span class="section-heading-under">Publicado por<em><b> {{post.author}} </b></em> en 
-		
+			    <span class="section-heading-under">
+			    Publicado por
+			    	<em>
+				    	<b>
+				    		<a href="{% url 'name-detalleEntrada' post.author.pk %}">{{ post.author }}</a>
+				     	</b>
+			       </em>
+
 			    </span>
-			    <p><p>
-				<a href="{% url 'name-editarEntrada' post.id %}"><button type="button" class="btn btn-warning">Editar Entreda</button></a>
-				<a href="{% url 'name-borrarEntrada' post.id %}"><button type="button" class="btn btn-danger">Borrar Entreda</button></a>	
-				</p></p>
-			   </div>
+			    <p></p>
+			    <p></p>
+				<a href="{% url 'name-editarEntrada' post.id %}"><button type="button" class="btn btn-warning btn-sm" >Editar Entreda</button></a>
+				<a href="{% url 'name-borrarEntrada' post.id %}"><button type="button" class="btn btn-danger btn-sm">Borrar Entreda</button></a>	
+			    </div>
 		  	
 			   <div class="col-md-5">
 			  	 {% if post.image %}

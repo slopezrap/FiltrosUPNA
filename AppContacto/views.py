@@ -10,9 +10,10 @@ def VistaContacto(request):
         valor_formulario_contacto = ContactForm(data=request.POST)
         if valor_formulario_contacto.is_valid():
             #Si el formulario es valido recupero los valores del formulario
-            name = request.POST.get('name','')
-            email = request.POST.get('email','')
-            content = request.POST.get('content','')
+            #Uso valor_formulario_contacto.cleaned_data.get en lugar de request.POST.get porque el primero chequea la condicion del formulario
+            name = valor_formulario_contacto.cleaned_data.get('name')
+            email = valor_formulario_contacto.cleaned_data.get('email')
+            content = valor_formulario_contacto.cleaned_data.get('content')
             
             #Si todo va bien, enviamos el correo y redireccionamos a la propia pagina contact/ok a traves de un request.GET
             #Uso reverse porque en lugar de meter la pagina en crudo es como un {% url 'name' %}
