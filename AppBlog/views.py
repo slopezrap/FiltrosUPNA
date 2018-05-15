@@ -1,8 +1,13 @@
+# encoding: utf-8
+# encoding: iso-8859-1
+# encoding: win-1252
+
 from django.shortcuts import render,redirect
 from django.urls import reverse
 from .models import ModeloBlog
 from .forms import FormularioBlog
 from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponse
 
 
 
@@ -61,46 +66,58 @@ def VistaCrearEntradaBlog(request):
 def VistaEditarEntradaBlog(request, pk):  
     try:
         instancia_objeto_bbdd = ModeloBlog.objects.get(pk=pk)
-        if request.method == "GET":
-            template = "AppBlog/EditarEntradaBlog.html"
-            nombre_pestania = "Editar Entrada Blog"
-            EntradaBlog = FormularioBlog(instance=instancia_objeto_bbdd)
-            contexto = {
-                "clave_nombre_pestania" : nombre_pestania,
-                'clave_formulario_template': EntradaBlog,
-                }    
-            return render(request, template, contexto)        
-        
-        if request.method == "POST":
-            formulario = FormularioBlog(request.POST, instance=instancia_objeto_bbdd)
-            if formulario.is_valid():
-                autor = request.user
-                #Uso formulario.cleaned_data.get en lugar de request.POST.get porque el primero chequea la condicion del formulario
-                tituloEntrada = formulario.cleaned_data.get("title")
-                contenidoEntrada = formulario.cleaned_data.get("content")
-                imagenEntrada = formulario.cleaned_data.get("image")
-                #Edito en la base de datos
-                ModeloBlog.objects.filter(pk=pk).update(title=tituloEntrada,content=contenidoEntrada,author=autor,image=imagenEntrada) 
-                return redirect(reverse('name-blog')+"?editado")
+        if (instancia_objeto_bbdd.author) != (request.user):
+            reponse = HttpResponse("No tienes permisos para modificar esta entrada")
+            reponse.status_code = 403
+            return reponse  
+        else:         
+            if request.method == "GET":
+                template = "AppBlog/EditarEntradaBlog.html"
+                nombre_pestania = "Editar Entrada Blog"
+                EntradaBlog = FormularioBlog(instance=instancia_objeto_bbdd)
+                contexto = {
+                    "clave_nombre_pestania" : nombre_pestania,
+                    'clave_formulario_template': EntradaBlog,
+                    }    
+                return render(request, template, contexto)        
+            
+            if request.method == "POST":
+                formulario = FormularioBlog(request.POST, instance=instancia_objeto_bbdd)
+                if formulario.is_valid():
+                    autor = request.user
+                    #Uso formulario.cleaned_data.get en lugar de request.POST.get porque el primero chequea la condicion del formulario
+                    tituloEntrada = formulario.cleaned_data.get("title")
+                    contenidoEntrada = formulario.cleaned_data.get("content")
+                    imagenEntrada = formulario.cleaned_data.get("image")
+                    #Edito en la base de datos
+                    ModeloBlog.objects.filter(pk=pk).update(title=tituloEntrada,content=contenidoEntrada,author=autor,image=imagenEntrada) 
+                    return redirect(reverse('name-blog')+"?editado")
             
     except ModeloBlog.DoesNotExist:
         return redirect(reverse('name-404'))
 
 @login_required(login_url="/accounts/login/")
-def VistaBorrarEntradaBlog(request,pk):
+def VistaBorrarEntradaBlog(request,pk): 
     try:
-        if request.method == "GET":
-            template = "AppBlog/BorrarEntradaBlogConfirmacion.html"
-            nombre_pestania = "Borrar Entrada Blog"
-            contexto = {
-                "clave_nombre_pestania" : nombre_pestania,
-                }
-            
-            return render(request, template, contexto)
-        if request.method =="POST":
-            ModeloBlog.objects.filter(pk=pk).delete()    
-            return redirect(reverse('name-blog')+"?borrada")     
+        instancia_objeto_bbdd = ModeloBlog.objects.get(pk=pk)
+        if (instancia_objeto_bbdd.author) != (request.user):
+            reponse = HttpResponse("No tienes permisos para borrar esta entrada")
+            reponse.status_code = 403
+            return reponse  
+        
+        else:
+            if request.method == "GET":
+                template = "AppBlog/BorrarEntradaBlogConfirmacion.html"
+                nombre_pestania = "Borrar Entrada Blog"
+                contexto = {
+                    "clave_nombre_pestania" : nombre_pestania,
+                    }
                 
+                return render(request, template, contexto)
+            if request.method =="POST":
+                ModeloBlog.objects.filter(pk=pk).delete()    
+                return redirect(reverse('name-blog')+"?borrada")     
+                    
     except ModeloBlog.DoesNotExist:
         return redirect(reverse('name-404'))  
        
