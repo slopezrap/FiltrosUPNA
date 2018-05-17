@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block contenido %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
   <ol class="carousel-indicators">
     <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -18,7 +19,9 @@
         <div class="carousel-caption text-left">
           <h1>Filtro Paso Bajo</h1>
           <p>Crea un Filtro Paso Bajo</p>
-          <p><a class="btn btn-lg btn-primary" href="#" role="button">Registrate</a></p>
+          {% if not user.is_authenticated %}
+          <p><a class="btn btn-lg btn-primary" href="{% url 'name-signup' %}" role="button">Regístrate</a></p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -28,7 +31,9 @@
         <div class="carousel-caption">
           <h1>Filtro Paso Alto</h1>
           <p>Crea un Filtro Paso Alto</p>
-          <p><a class="btn btn-lg btn-primary" href="#" role="button">Registrate</a></p>
+          {% if not user.is_authenticated %}
+          <p><a class="btn btn-lg btn-primary" href="{% url 'name-signup' %}" role="button">Regístrate</a></p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -38,7 +43,9 @@
         <div class="carousel-caption text-right">
           <h1>Filtro Paso Banda</h1>
           <p>Crea un Filtro Paso Banda	</p>
-          <p><a class="btn btn-lg btn-primary" href="#" role="button">Registrate</a></p>
+          {% if not user.is_authenticated %}
+          <p><a class="btn btn-lg btn-primary" href="{% url 'name-signup' %}" role="button">Regístrate</a></p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -65,20 +72,20 @@
   <div class="col-lg-4">
     <img class="rounded-circle" src="{% static 'AppCore/img/FPB.PNG' %}" alt="Generic placeholder image" width="140" height="140">
     <h2>Filtro Paso Bajo</h2>
-    <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna.</p>
-    <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+    <p>Crea un filtro Paso Bajo.</p>
+    <p><a class="btn btn-secondary" href="#" role="button">Créalo! &raquo;</a></p>
   </div><!-- /.col-lg-4 -->
   <div class="col-lg-4">
     <img class="rounded-circle" src="{% static 'AppCore/img/FPA.PNG' %}" alt="Generic placeholder image" width="140" height="140">
     <h2>Filtro Paso Alto</h2>
-    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>
-    <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+    <p>Crea un filtro Paso Alto.</p>
+    <p><a class="btn btn-secondary" href="#" role="button">Créalo! &raquo;</a></p>
   </div><!-- /.col-lg-4 -->
   <div class="col-lg-4">
     <img class="rounded-circle" src="{% static 'AppCore/img/FPBANDA.PNG' %}" alt="Generic placeholder image" width="140" height="140">
     <h2>Filtro Paso Banda</h2>
-    <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-    <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+    <p>Crea un filtro Paso Banda.</p>
+    <p><a class="btn btn-secondary" href="#" role="button">Créalo! &raquo;</a></p>
   </div><!-- /.col-lg-4 -->
 </div><!-- /.row -->
 
