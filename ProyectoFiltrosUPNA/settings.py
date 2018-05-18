@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'AppBlog.apps.AppblogConfig', #así extiende la configuración de apps.py y usar el verbose_name para el admin
     'AppContacto',
     'AppAccounts',
+    'AppFiltrosCore',
+    'AppFPBajo',
     #Apps de terceros
     'crispy_forms',
     'ckeditor',

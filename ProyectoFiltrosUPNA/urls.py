@@ -21,10 +21,14 @@ urlpatterns = [
     path('', include('AppCore.urls')),
     #Paths AppBlog
     path('blog/', include('AppBlog.urls')),
-    #Paths AppBlog
+    #Paths AppContacto
     path('contacto/', include('AppContacto.urls')),
     #Paths AppAccounts
     path('accounts/', include('AppAccounts.urls')),
+    #Paths AppFiltrosCore
+    path('filtros/', include('AppFiltrosCore.urls')),
+    #Paths AppFPBajo
+    path('filtros/', include('AppFPBajo.urls')),
     #Path del admin
     path('admin/', admin.site.urls),
 ]

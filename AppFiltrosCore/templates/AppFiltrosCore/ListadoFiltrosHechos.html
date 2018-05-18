@@ -1,0 +1,11 @@
+{% extends 'AppCore/Base.html' %}
+{% load static %}
+{% block NombrePestania %}
+{{clave_nombre_pestania}}
+{% endblock %}
+
+
+{% block contenido %}
+{% include 'AppFiltrosCore/BarraCrearEntradaFiltros.html' %}
+Poner el listado de filtro del usuario
+{% endblock %}
