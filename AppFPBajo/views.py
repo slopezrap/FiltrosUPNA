@@ -6,7 +6,8 @@ from django.shortcuts import render,redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
-
+from .models import ModeloFPBajo
+from .forms import FormularioFPBajo
 # Create your views here.
 
     
@@ -18,7 +19,6 @@ def VistaCrearFPBajo(request):
         
         contexto = {
             "clave_nombre_pestania" : nombre_pestania,
-            
             }
         return render(request, template , contexto)
     
@@ -31,9 +31,9 @@ def Crear_Filtro_Paso_Bajo(request):
     if request.method == "GET":
         template = "AppFPBajo/Crear_Filtro_Paso_Bajo.html"
         nombre_pestania = "Crear FPBajo"
-        
+        formulario = FormularioFPBajo()
         contexto = {
             "clave_nombre_pestania" : nombre_pestania,
-            
+            'clave_variablesFPBajo_template':formulario,
             }
         return render(request, template , contexto)

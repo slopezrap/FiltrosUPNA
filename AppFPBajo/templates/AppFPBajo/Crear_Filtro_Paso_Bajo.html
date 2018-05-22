@@ -1,3 +1,67 @@
+{% extends 'AppCore/Base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block NombrePestania %}
+{{clave_nombre_pestania}}
+{% endblock %}
+
+
+{% block contenido %}
+{% include 'AppFiltrosCore/BarraCrearEntradaFiltros.html' %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<div class="container marketing">
+	     	<form id="VariablesFPBajo">
+	     		{% csrf_token %}
+	     		<div id=nameFilter class="container">
+	     			{{clave_variablesFPBajo_template.nameFilter|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+	     		
+	     		<div id=Ap_db class="container">
+	     			{{clave_variablesFPBajo_template.Ap_db|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+	     		
+	     		<div id=As_db class="container">
+	     			{{clave_variablesFPBajo_template.As_db|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+
+	     		<div id=Fp_Hz class="container">
+	     			{{clave_variablesFPBajo_template.Fp_Hz|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+
+	     		<div id=Fs_Hz class="container">
+	     			{{clave_variablesFPBajo_template.Fs_Hz|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+
+	     		<div id=Rg_Ohm class="container">
+	     			{{clave_variablesFPBajo_template.Rg_Ohm|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+	     		
+	     		<div id=Rl_Ohm class="container">
+	     			{{clave_variablesFPBajo_template.Rl_Ohm|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>
+	     		
+	     		<input type="submit" class="btn btn-lg btn-primary" value="Enviar">
+	     	</form>	
+	</div>  	
+
+{% endblock %}
+
+
+
 <!-- chat/templates/chat/room.html -->
 <!DOCTYPE html>
 <html>
