@@ -69,20 +69,20 @@ class Consumidor(AsyncWebsocketConsumer):
         
     # Recibes mensaje del websocket del frontend al backend (Receive message from WebSocket)
     async def receive(self, text_data):
+        print(text_data)
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        print(message)
+        BNombreFiltro = text_data_json['FNombreFiltro']
+        print(BNombreFiltro)
         #Si se cumple una condicion llamo a la tarea asincrona, que la tarea asincrona luego envia el resultado al grupo, sino mando el mensaje directamente al grupo
-        if str(message) == "hola":
-            MensajeAlGrupo.delay()
-            
+        if str(BNombreFiltro) == "hola":
+            MensajeAlGrupo.delay() 
         #Manda directamente el mensaje al grupo  (Send message to room group)
         else:          
             await self.channel_layer.group_send(
                 'grupo',
                 {
                     'type': 'chat_message',
-                    'message': message
+                    'message': BNombreFiltro
                 }
             )
             

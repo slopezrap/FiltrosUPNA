@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//AppAccounts/forms.py=utf-8
 encoding//AppBlog/views.py=utf-8
+encoding//AppFPBajo/templates/AppFPBajo/Crear_Filtro_Paso_Bajo.html=UTF-8
 encoding//AppFPBajo/views.py=utf-8
 encoding//AppFiltrosCore/views.py=utf-8

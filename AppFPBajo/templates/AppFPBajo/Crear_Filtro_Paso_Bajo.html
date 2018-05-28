@@ -9,107 +9,143 @@
 {% block contenido %}
 {% include 'AppFiltrosCore/BarraCrearEntradaFiltros.html' %}
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<div class="container marketing">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+	<div id="container" class="container marketing">
 	     	<form id="VariablesFPBajo">
 	     		{% csrf_token %}
-	     		<div id=nameFilter class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.nameFilter|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 	     		
-	     		<div id=Ap_db class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.Ap_db|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 	     		
-	     		<div id=As_db class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.As_db|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 
-	     		<div id=Fp_Hz class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.Fp_Hz|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 
-	     		<div id=Fs_Hz class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.Fs_Hz|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 
-	     		<div id=Rg_Ohm class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.Rg_Ohm|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 	     		
-	     		<div id=Rl_Ohm class="container">
+	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.Rl_Ohm|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
 	     		
-	     		<input type="submit" class="btn btn-lg btn-primary" value="Enviar">
+	     		<input id=envio_formulario type="submit" class="btn btn-lg btn-primary" value="Enviar">
 	     	</form>	
-	</div>  	
+	    <p></p> 	
+		</div>  
+            <div id="task_status_div" >
+                <h2>Filtros</h2>
+                <table id="task_status" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID Filtro</th>
+                            <th>Nombre Filtro</th>
+                            <th>Atenuacion en la banda de paso [dB]</th>
+                            <th>Atenuacion en la banda eliminada (stop) [dB]</th>
+                            <th>Frecuencia de paso [Hz]</th>
+                            <th>Frecuencia de stop [Hz]</th>
+                            <th>Resistencia generador [Ohm]</th>
+                            <th>Resistencia de carga (load) [Ohm]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
+                    </tbody>
+                </table>
+            </div>
+        </div>	
+
+<script>
+
+$(document).ready(function() {
+  if(!("WebSocket" in window)){
+  $('#nameFilter,#Ap_db, input').fadeOut("fast");
+  $('<p>Oh no, you need a browser that supports WebSockets. How about <a href="http://www.google.com/chrome">Google Chrome</a>?</p>').appendTo('#container');
+  }else{
+      //The user has WebSockets
+      connect();
+      function connect(){
+          var socket;
+          var host = 'ws://' + window.location.host + "/filtros/Crear_FPB/";
+          try{
+              var socket = new WebSocket(host);
+              console.log("[FRONT] Conectando a: " + host)
+              
+
+              socket.onopen = function(){
+            	  console.log("[FRONT] Socket abierto")
+              }
+              
+              <!-- Recibe mensaje del backend al frontend  -->
+              socket.onmessage = function(msg){
+                  var data = JSON.parse(msg.data);
+                  var message = data['message'];
+                  console.log("[FRONT] Reciviendo mensaje del back al front: "+ message)
+                  var task_status = $("#task_status");
+                  var ele = $('<tr></tr>');
+                  var item_name = $("<td></td>").text(data.message);
+                  ele.append(item_name);
+                  task_status.append(ele);
+              }
+
+              socket.onclose = function(){
+            	  console.log("[FRONT] Socket cerrado")
+              }			
+
+          } catch(exception){
+        	  console.log("[FRONT] Error: "+ exception)
+          }
+
+          <!-- Funcion de envio mensaje del frontend al backend -->
+          function send(){
+              var NombreFiltroInputDom = document.getElementById('id_nameFilter');
+              var FNombreFiltro = NombreFiltroInputDom.value;            
+              if (FNombreFiltro!="") {
+	              socket.send(JSON.stringify({
+	                  'FNombreFiltro': FNombreFiltro
+	              }));
+			  }
+              else { 
+            	  console.log("[FRONT] Mensaje en blanco")
+				}
+              NombreFiltroInputDom.value ="";
+          }
+   
+          <!-- Llamada a la funcion del mensaje del frontend al backend cuando toco el boton -->
+          document.getElementById('envio_formulario').onclick = function(e) {
+		  	  send();
+          }
+          
+      }//End connect
+  }//End else
+});//document
+</script>
 {% endblock %}
 
 
-
-<!-- chat/templates/chat/room.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <title>Chat Room</title>
-</head>
-<body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
-    <input id="chat-message-input" type="text" size="100"/><br/>
-    <input id="chat-message-submit" type="button" value="Send"/>
-</body>
-<script>
-    var chatSocket = new WebSocket('ws://' + window.location.host + "/filtros/Crear_FPB/");
-    
-    <!-- recibe mensaje del backend al frontend  -->
-    chatSocket.onmessage = function(e) {
-        var data = JSON.parse(e.data);
-        var message = data['message'];
-        document.querySelector('#chat-log').value += (message + '\n');
-    };
-    
-    
-    <!-- socket cerrar -->
-    chatSocket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
-    };
-    
-    
-    
-    document.querySelector('#chat-message-input').focus();
-    document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.keyCode === 13) {  // enter, return
-            document.querySelector('#chat-message-submit').click();
-        }
-    };
-    
-    <!-- envio mensaje del frontend al backend -->
-    document.querySelector('#chat-message-submit').onclick = function(e) {
-        var messageInputDom = document.querySelector('#chat-message-input');
-        var message = messageInputDom.value;
-        console.log(message)
-        chatSocket.send(JSON.stringify({
-            'message': message
-        }));
-        messageInputDom.value = '';
-    };
-    
-    
-</script>
-</html>
