@@ -72,6 +72,7 @@
                             <th>Frecuencia de stop [Hz]</th>
                             <th>Resistencia generador [Ohm]</th>
                             <th>Resistencia de carga (load) [Ohm]</th>
+                            <th>Estado del filtro</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,8 +86,8 @@
 
 $(document).ready(function() {
   if(!("WebSocket" in window)){
-  $('#nameFilter,#Ap_db, input').fadeOut("fast");
-  $('<p>Oh no, you need a browser that supports WebSockets. How about <a href="http://www.google.com/chrome">Google Chrome</a>?</p>').appendTo('#container');
+  $('#id_nameFilter,#Ap_db, input').fadeOut("fast");
+  $('<p>Oh no, tu necesitas un navegador que soporte WebSockets. Descargalo de: <a href="http://www.google.com/chrome">Google Chrome</a>?</p>').appendTo('#container');
   }else{
       //The user has WebSockets
       connect();
@@ -104,14 +105,42 @@ $(document).ready(function() {
               
               <!-- Recibe mensaje del backend al frontend  -->
               socket.onmessage = function(msg){
+            	  //leo el json del back en el front data.clave para conseguir el valor
                   var data = JSON.parse(msg.data);
-                  var message = data['message'];
-                  console.log("[FRONT] Reciviendo mensaje del back al front: "+ message)
-                  var task_status = $("#task_status");
-                  var ele = $('<tr></tr>');
-                  var item_name = $("<td></td>").text(data.message);
-                  ele.append(item_name);
-                  task_status.append(ele);
+                  if (data.Clave_B_Estado == "Creando Filtro") {
+                	  console.log("[FRONT] El filtro ha empezado y recibo datos del back")
+                	  //introduzco en la tabla "task_status" como esta el filtro
+	                  var task_status = $("#task_status");
+	                  var ele = $('<tr></tr>');
+	                  
+	                  //var id_filtro = $("<td></td>").text(data.id_filtro);
+	                  var NombreFiltro = $("<td></td>").text(data.Clave_B_Nombre_Filtro);
+	                  var Ap_db = $("<td></td>").text(data.Clave_B_Ap_db);
+	                  var As_db = $("<td></td>").text(data.Clave_B_As_db);
+	                  var Fp_Hz = $("<td></td>").text(data.Clave_B_Fp_Hz);
+	                  var Fs_Hz = $("<td></td>").text(data.Clave_B_Fs_Hz);
+	                  var Rg_Ohm = $("<td></td>").text(data.Clave_B_Rg_Ohm);
+	                  var Rl_Ohm = $("<td></td>").text(data.Clave_B_Rl_Ohm);
+	                  var EstadoFiltro = $("<td></td>").text(data.Clave_B_Estado);
+	                  
+	                  ele.append(NombreFiltro);
+	                  ele.append(Ap_db);
+	                  ele.append(As_db);
+	                  ele.append(Fp_Hz);
+	                  ele.append(Fs_Hz);
+	                  ele.append(Rg_Ohm);
+	                  ele.append(Rl_Ohm);
+	                  ele.append(EstadoFiltro);
+	                  
+	                  task_status.append(ele);
+                  }
+                  else if (data.action == "completed"){
+                      var item = $('#item-status-' + data.job_id + ' span');
+                      item.attr("class", "label label-success");
+                      item.text(data.job_status);
+                  }
+
+                  
               }
 
               socket.onclose = function(){
@@ -124,17 +153,50 @@ $(document).ready(function() {
 
           <!-- Funcion de envio mensaje del frontend al backend -->
           function send(){
-              var NombreFiltroInputDom = document.getElementById('id_nameFilter');
-              var FNombreFiltro = NombreFiltroInputDom.value;            
-              if (FNombreFiltro!="") {
+        	  // Extraigo los valores del formulario
+              var NombreFiltro_InputDom = document.getElementById('id_nameFilter');
+              var Ap_db_InputDom = document.getElementById('id_Ap_db');
+              var As_db_InputDom = document.getElementById('id_As_db');
+              var Fp_Hz_InputDom = document.getElementById('id_Fp_Hz');
+              var Fs_Hz_InputDom = document.getElementById('id_Fs_Hz');
+              var Rg_Ohm_InputDom = document.getElementById('id_Rg_Ohm');
+              var Rl_Ohm_InputDom = document.getElementById('id_Rl_Ohm');
+              
+              //F es del Front
+              var Valor_FNombreFiltro = NombreFiltro_InputDom.value;    
+              var Valor_F_Ap_db = Ap_db_InputDom.value; 
+              var Valor_F_As_db = As_db_InputDom.value; 
+              var Valor_F_Fp_Hz = Fp_Hz_InputDom.value; 
+              var Valor_F_Fs_Hz = Fs_Hz_InputDom.value; 
+              var Valor_F_Rg_Ohm = Rg_Ohm_InputDom.value; 
+              var Valor_F_Rl_Ohm = Rl_Ohm_InputDom.value; 
+              
+              
+              //envio los datos al back en formato JSON
+              if (Valor_FNombreFiltro!="") {
 	              socket.send(JSON.stringify({
-	                  'FNombreFiltro': FNombreFiltro
+	            	  //.trim() elimino espacio en blanco delante y detras (A LA IZQUIERDA LA CLAVE Y A LA DERECHA EL VALOR)
+	            	  'Clave_Accion': "Crear_FPBajo",
+	                  'Clave_F_NombreFiltro': Valor_FNombreFiltro.trim(),
+	                  'Clave_F_Ap_db': Valor_F_Ap_db,
+	                  'Clave_F_As_db': Valor_F_As_db,
+	                  'Clave_F_Fp_Hz': Valor_F_Fp_Hz,
+	                  'Clave_F_Fs_Hz': Valor_F_Fs_Hz,
+	                  'Clave_F_Rg_Ohm': Valor_F_Rg_Ohm,
+	                  'Clave_F_Rl_Ohm': Valor_F_Rl_Ohm,
 	              }));
 			  }
               else { 
             	  console.log("[FRONT] Mensaje en blanco")
 				}
-              NombreFiltroInputDom.value ="";
+              //Devuelo los mismos valores al formulario
+              NombreFiltro_InputDom.value = "";
+              Ap_db_InputDom.value = "";
+              As_db_InputDom.value = "";
+              Fp_Hz_InputDom.value = "";
+              Fs_Hz_InputDom.value = ""; 
+              Rg_Ohm_InputDom.value = ""; 
+              Rl_Ohm_InputDom.value = "";
           }
    
           <!-- Llamada a la funcion del mensaje del frontend al backend cuando toco el boton -->
