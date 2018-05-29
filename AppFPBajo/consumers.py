@@ -7,6 +7,9 @@ from .models import ModeloFPBajo
 class Consumidor(AsyncWebsocketConsumer):
     async def connect(self):
         # Join room group
+        self.user = self.scope["user"]
+        print(self.user)
+        print(self.scope["user"])
         await self.channel_layer.group_add(
             'grupo',
             self.channel_name
@@ -21,7 +24,7 @@ class Consumidor(AsyncWebsocketConsumer):
         
     # Recibes mensaje del websocket del frontend al backend (Receive message from WebSocket)
     async def receive(self, text_data):
-
+        print(self.scope["user"])
         
         print(text_data)
         
