@@ -107,13 +107,13 @@ $(document).ready(function() {
               socket.onmessage = function(msg){
             	  //leo el json del back en el front data.clave para conseguir el valor
                   var data = JSON.parse(msg.data);
-                  if (data.Clave_B_Estado == "Creando Filtro") {
+                  if (data.Clave_B_Estado == "Empezando") {
                 	  console.log("[FRONT] El filtro ha empezado y recibo datos del back")
                 	  //introduzco en la tabla "task_status" como esta el filtro
 	                  var task_status = $("#task_status");
 	                  var ele = $('<tr></tr>');
-	                  
-	                  //var id_filtro = $("<td></td>").text(data.id_filtro);
+
+	                  var Id_Filtro = $("<td></td>").text(data.Clave_B_Filtro_id);
 	                  var NombreFiltro = $("<td></td>").text(data.Clave_B_Nombre_Filtro);
 	                  var Ap_db = $("<td></td>").text(data.Clave_B_Ap_db);
 	                  var As_db = $("<td></td>").text(data.Clave_B_As_db);
@@ -123,6 +123,7 @@ $(document).ready(function() {
 	                  var Rl_Ohm = $("<td></td>").text(data.Clave_B_Rl_Ohm);
 	                  var EstadoFiltro = $("<td></td>").text(data.Clave_B_Estado);
 	                  
+	                  ele.append(Id_Filtro);
 	                  ele.append(NombreFiltro);
 	                  ele.append(Ap_db);
 	                  ele.append(As_db);
@@ -131,13 +132,34 @@ $(document).ready(function() {
 	                  ele.append(Rg_Ohm);
 	                  ele.append(Rl_Ohm);
 	                  ele.append(EstadoFiltro);
-	                  
+	            
 	                  task_status.append(ele);
                   }
-                  else if (data.action == "completed"){
-                      var item = $('#item-status-' + data.job_id + ' span');
-                      item.attr("class", "label label-success");
-                      item.text(data.job_status);
+                  else if (data.Clave_B_Estado == "Completado"){
+	                  var task_status = $("#task_status");
+	                  var ele = $('<tr></tr>');
+
+	                  var Id_Filtro = $("<td></td>").text(data.Clave_B_Filtro_id);
+	                  var NombreFiltro = $("<td></td>").text(data.Clave_B_Nombre_Filtro);
+	                  var Ap_db = $("<td></td>").text(data.Clave_B_Ap_db);
+	                  var As_db = $("<td></td>").text(data.Clave_B_As_db);
+	                  var Fp_Hz = $("<td></td>").text(data.Clave_B_Fp_Hz);
+	                  var Fs_Hz = $("<td></td>").text(data.Clave_B_Fs_Hz);
+	                  var Rg_Ohm = $("<td></td>").text(data.Clave_B_Rg_Ohm);
+	                  var Rl_Ohm = $("<td></td>").text(data.Clave_B_Rl_Ohm);
+	                  var EstadoFiltro = $("<td></td>").text(data.Clave_B_Estado);
+	                  
+	                  ele.append(Id_Filtro);
+	                  ele.append(NombreFiltro);
+	                  ele.append(Ap_db);
+	                  ele.append(As_db);
+	                  ele.append(Fp_Hz);
+	                  ele.append(Fs_Hz);
+	                  ele.append(Rg_Ohm);
+	                  ele.append(Rl_Ohm);
+	                  ele.append(EstadoFiltro);
+	            
+	                  task_status.append(ele);
                   }
 
                   

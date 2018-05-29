@@ -1,6 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .tasks import Crear_FPBajo
+from .models import ModeloFPBajo
+
 
 class Consumidor(AsyncWebsocketConsumer):
     async def connect(self):
@@ -19,7 +21,10 @@ class Consumidor(AsyncWebsocketConsumer):
         
     # Recibes mensaje del websocket del frontend al backend (Receive message from WebSocket)
     async def receive(self, text_data):
+
+        
         print(text_data)
+        
         text_data_json = json.loads(text_data)
         #La B es Back, variable
         Valor_B_NombreFiltro = text_data_json['Clave_F_NombreFiltro']
@@ -32,45 +37,50 @@ class Consumidor(AsyncWebsocketConsumer):
         Valor_Accion = text_data_json['Clave_Accion']
         #Si se cumple una condicion llamo a la tarea asincrona (celery), que la tarea asincrona luego envia el resultado al grupo, sino mando el mensaje directamente al grupo
         if str(Valor_Accion) == "Crear_FPBajo":
-            #Llamo a celery
-            CFPBajoCelery = Crear_FPBajo.delay(text_data)
-
-            print(CFPBajoCelery.id)
+            #Me guardo mi filtro en la base de datos
+            Filtro = ModeloFPBajo(
+                nameFilter = Valor_B_NombreFiltro,
+                estado = "Empezando",
+                Ap_db = Valor_B_Ap_db,
+                As_db = Valor_B_As_db,
+                Fp_Hz = Valor_B_Fp_Hz,
+                Fs_Hz = Valor_B_Fs_Hz,
+                Rg_Ohm = Valor_B_Rg_Ohm,
+                Rl_Ohm = Valor_B_Rl_Ohm          
+                )
+            Filtro.save()
+            #Una vez que lo guardo ya tengo el Filtro.id
+            #Llamo a celery          
+            CFPBajoCelery = Crear_FPBajo.delay(Filtro.id, text_data)
+            #Actualizo el celery id en mi Filtro en la base de datos
+            Filtro.celery_id = CFPBajoCelery.id
+            Filtro.save()
+            
+            #Le digo al front que ya ha comenzando enviando el mensaje al grupo y el grupo enviandolo al front
             await self.channel_layer.group_send(
                 'grupo',
                 {
                     'type': 'CrearFiltroAsincrono',
-                    
-                    'Clave_B_Estado': "Creando Filtro",
-                    'Clave_B_Nombre_Filtro': Valor_B_NombreFiltro,
-                    'Clave_B_Ap_db': Valor_B_Ap_db, 
-                    'Clave_B_As_db': Valor_B_As_db,
-                    'Clave_B_Fp_Hz': Valor_B_Fp_Hz,
-                    'Clave_B_Fs_Hz': Valor_B_Fs_Hz,
-                    'Clave_B_Rg_Ohm': Valor_B_Rg_Ohm,
-                    'Clave_B_Rl_Ohm': Valor_B_Rl_Ohm,
+                    'Clave_B_Estado': "Empezando",
+                    'Clave_B_Filtro_id' : Filtro.id,
+                    'Clave_B_Nombre_Filtro': Filtro.nameFilter,
+                    'Clave_B_Ap_db': Filtro.Ap_db, 
+                    'Clave_B_As_db': Filtro.As_db,
+                    'Clave_B_Fp_Hz': Filtro.Fp_Hz,
+                    'Clave_B_Fs_Hz': Filtro.Fs_Hz,
+                    'Clave_B_Rg_Ohm': Filtro.Rg_Ohm,
+                    'Clave_B_Rl_Ohm': Filtro.Rl_Ohm
                 }
             )
              
         #Manda directamente el mensaje al grupo  (Send message to room group)
         else:          
-            await self.channel_layer.group_send(
-                'grupo',
-                {
-                    'type': 'CrearFiltroAsincrono',
-                    'Clave_B_Estado': "Error Filtro",
-                    'Clave_B_Nombre_Filtro': Valor_B_NombreFiltro,
-                    'Clave_B_Ap_db': Valor_B_Ap_db, 
-                    'Clave_B_As_db': Valor_B_As_db,
-                    'Clave_B_Fp_Hz': Valor_B_Fp_Hz,
-                    'Clave_B_Fs_Hz': Valor_B_Fs_Hz,
-                    'Clave_B_Rg_Ohm': Valor_B_Rg_Ohm,
-                    'Clave_B_Rl_Ohm': Valor_B_Rl_Ohm,
-                }
-            )
+            return None
             
-    # Recibe los mensajes del grupo, tanto de la tarea asincrona como sino y los envia al front en JSON
+    # Recibe los mensajes del grupo, tanto de la tarea asincrona (celery) como sino y los envia al front en JSON
     async def CrearFiltroAsincrono(self, event):
+
+        Valor_B_Filtro_id = event['Clave_B_Filtro_id']
         Valor_B_Nombre_Filtro = event['Clave_B_Nombre_Filtro']
         Valor_B_Ap_db = event['Clave_B_Ap_db']
         Valor_B_As_db = event['Clave_B_As_db']
@@ -84,6 +94,7 @@ class Consumidor(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'CrearFiltroAsincrono',
             "Clave_B_Estado": Valor_B_Estado,
+            'Clave_B_Filtro_id' : Valor_B_Filtro_id,
             'Clave_B_Nombre_Filtro': Valor_B_Nombre_Filtro,
             'Clave_B_Ap_db': Valor_B_Ap_db, 
             'Clave_B_As_db': Valor_B_As_db,
