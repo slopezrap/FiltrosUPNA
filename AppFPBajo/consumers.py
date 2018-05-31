@@ -8,8 +8,6 @@ class Consumidor(AsyncWebsocketConsumer):
     async def connect(self):
         # Join room group
         self.user = self.scope["user"]
-        print(self.user)
-        print(self.scope["user"])
         await self.channel_layer.group_add(
             'grupo',
             self.channel_name
@@ -25,12 +23,12 @@ class Consumidor(AsyncWebsocketConsumer):
     # Recibes mensaje del websocket del frontend al backend (Receive message from WebSocket)
     async def receive(self, text_data):
         print(self.scope["user"])
-        
         print(text_data)
         
         text_data_json = json.loads(text_data)
         #La B es Back, variable
         Valor_B_NombreFiltro = text_data_json['Clave_F_NombreFiltro']
+        Valor_B_tipoFiltro = text_data_json['Clave_F_Tipo_Filtro']
         Valor_B_Ap_db = text_data_json['Clave_F_Ap_db']
         Valor_B_As_db = text_data_json['Clave_F_As_db']
         Valor_B_Fp_Hz = text_data_json['Clave_F_Fp_Hz']
@@ -44,12 +42,14 @@ class Consumidor(AsyncWebsocketConsumer):
             Filtro = ModeloFPBajo(
                 nameFilter = Valor_B_NombreFiltro,
                 estado = "Empezando",
+                tipoFiltro = Valor_B_tipoFiltro,
                 Ap_db = Valor_B_Ap_db,
                 As_db = Valor_B_As_db,
                 Fp_Hz = Valor_B_Fp_Hz,
                 Fs_Hz = Valor_B_Fs_Hz,
                 Rg_Ohm = Valor_B_Rg_Ohm,
-                Rl_Ohm = Valor_B_Rl_Ohm          
+                Rl_Ohm = Valor_B_Rl_Ohm,
+                author = self.scope["user"]    
                 )
             Filtro.save()
             #Una vez que lo guardo ya tengo el Filtro.id
@@ -67,6 +67,7 @@ class Consumidor(AsyncWebsocketConsumer):
                     'Clave_B_Estado': "Empezando",
                     'Clave_B_Filtro_id' : Filtro.id,
                     'Clave_B_Nombre_Filtro': Filtro.nameFilter,
+                    'Clave_B_TipoFiltro': Filtro.tipoFiltro,
                     'Clave_B_Ap_db': Filtro.Ap_db, 
                     'Clave_B_As_db': Filtro.As_db,
                     'Clave_B_Fp_Hz': Filtro.Fp_Hz,
@@ -85,6 +86,7 @@ class Consumidor(AsyncWebsocketConsumer):
 
         Valor_B_Filtro_id = event['Clave_B_Filtro_id']
         Valor_B_Nombre_Filtro = event['Clave_B_Nombre_Filtro']
+        Valor_B_TipoFiltro = event['Clave_B_TipoFiltro']
         Valor_B_Ap_db = event['Clave_B_Ap_db']
         Valor_B_As_db = event['Clave_B_As_db']
         Valor_B_Fp_Hz = event['Clave_B_Fp_Hz']
@@ -95,10 +97,11 @@ class Consumidor(AsyncWebsocketConsumer):
 
         # Envia mensaje del backend al frontend (Send message to WebSocket)
         await self.send(text_data=json.dumps({
-            'type': 'CrearFiltroAsincrono',
+            'type': 'CrearFiltroAsincrono', #recibe los mensajes del async def CrearFiltroAsincrono
             "Clave_B_Estado": Valor_B_Estado,
             'Clave_B_Filtro_id' : Valor_B_Filtro_id,
             'Clave_B_Nombre_Filtro': Valor_B_Nombre_Filtro,
+            'Clave_B_TipoFiltro':Valor_B_TipoFiltro,
             'Clave_B_Ap_db': Valor_B_Ap_db, 
             'Clave_B_As_db': Valor_B_As_db,
             'Clave_B_Fp_Hz': Valor_B_Fp_Hz,

@@ -5,7 +5,7 @@ from .models import ModeloFPBajo
 
 
 class ModeloFPBajoAdmin(admin.ModelAdmin):
-    readonly_fields = ('created','updated','nameFilter','Ap_db','As_db','Fp_Hz','Fs_Hz','Rg_Ohm','Rl_Ohm','estado','celery_id',)
+    readonly_fields = ('created','updated','nameFilter','Ap_db','As_db','Fp_Hz','Fs_Hz','Rg_Ohm','Rl_Ohm','estado','celery_id','author')
     #Le indicamos que columnas mostrar
     list_display = ('nameFilter','Ap_db','As_db','Fp_Hz','Fs_Hz','Rg_Ohm','Rl_Ohm')
     #Le indicamos por lo que queremos ordenar

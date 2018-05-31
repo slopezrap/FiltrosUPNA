@@ -26,7 +26,7 @@ def VistaCrearFPBajo(request):
 
    
 
-#Cambiar en un futuro por una clase
+@login_required(login_url="/accounts/login/")
 def Crear_Filtro_Paso_Bajo(request):
     if request.method == "GET":
         template = "AppFPBajo/Crear_Filtro_Paso_Bajo.html"

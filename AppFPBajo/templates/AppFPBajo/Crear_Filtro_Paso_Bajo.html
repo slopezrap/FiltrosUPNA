@@ -12,13 +12,19 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 	<div id="container" class="container marketing">
 	     	<form id="VariablesFPBajo">
-	     		{% csrf_token %}
+	     		{% csrf_token %}     		
 	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.nameFilter|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
 	     		</div>
 	     		<p></p>
-	     		
+
+	     		<div class="container">
+	     			{{clave_variablesFPBajo_template.tipoFiltro|as_crispy_field}}
+	     			{{clave_en_template.name.errors}}
+	     		</div>
+	     		<p></p>	  
+	     			
 	     		<div class="container">
 	     			{{clave_variablesFPBajo_template.Ap_db|as_crispy_field}}
 	     			{{clave_en_template.name.errors}}
@@ -66,6 +72,7 @@
                         <tr>
                             <th>ID Filtro</th>
                             <th>Nombre Filtro</th>
+                            <th>Tipo Filtro</th>
                             <th>Atenuacion en la banda de paso [dB]</th>
                             <th>Atenuacion en la banda eliminada (stop) [dB]</th>
                             <th>Frecuencia de paso [Hz]</th>
@@ -115,6 +122,7 @@ $(document).ready(function() {
 
 	                  var Id_Filtro = $("<td></td>").text(data.Clave_B_Filtro_id);
 	                  var NombreFiltro = $("<td></td>").text(data.Clave_B_Nombre_Filtro);
+	                  var tipoFiltro = $("<td></td>").text(data.Clave_B_TipoFiltro);
 	                  var Ap_db = $("<td></td>").text(data.Clave_B_Ap_db);
 	                  var As_db = $("<td></td>").text(data.Clave_B_As_db);
 	                  var Fp_Hz = $("<td></td>").text(data.Clave_B_Fp_Hz);
@@ -125,6 +133,7 @@ $(document).ready(function() {
 	                  
 	                  ele.append(Id_Filtro);
 	                  ele.append(NombreFiltro);
+	                  ele.append(tipoFiltro);
 	                  ele.append(Ap_db);
 	                  ele.append(As_db);
 	                  ele.append(Fp_Hz);
@@ -141,6 +150,7 @@ $(document).ready(function() {
 
 	                  var Id_Filtro = $("<td></td>").text(data.Clave_B_Filtro_id);
 	                  var NombreFiltro = $("<td></td>").text(data.Clave_B_Nombre_Filtro);
+	                  var tipoFiltro = $("<td></td>").text(data.Clave_B_TipoFiltro);
 	                  var Ap_db = $("<td></td>").text(data.Clave_B_Ap_db);
 	                  var As_db = $("<td></td>").text(data.Clave_B_As_db);
 	                  var Fp_Hz = $("<td></td>").text(data.Clave_B_Fp_Hz);
@@ -151,6 +161,7 @@ $(document).ready(function() {
 	                  
 	                  ele.append(Id_Filtro);
 	                  ele.append(NombreFiltro);
+	                  ele.append(tipoFiltro);
 	                  ele.append(Ap_db);
 	                  ele.append(As_db);
 	                  ele.append(Fp_Hz);
@@ -176,6 +187,7 @@ $(document).ready(function() {
           <!-- Funcion de envio mensaje del frontend al backend -->
           function send(){
         	  // Extraigo los valores del formulario
+        	  var tipoFiltro_InputDom = document.getElementById('id_tipoFiltro');
               var NombreFiltro_InputDom = document.getElementById('id_nameFilter');
               var Ap_db_InputDom = document.getElementById('id_Ap_db');
               var As_db_InputDom = document.getElementById('id_As_db');
@@ -185,6 +197,7 @@ $(document).ready(function() {
               var Rl_Ohm_InputDom = document.getElementById('id_Rl_Ohm');
               
               //F es del Front
+              var Valor_F_Tipo_Filtro = tipoFiltro_InputDom.value;
               var Valor_FNombreFiltro = NombreFiltro_InputDom.value;    
               var Valor_F_Ap_db = Ap_db_InputDom.value; 
               var Valor_F_As_db = As_db_InputDom.value; 
@@ -199,6 +212,7 @@ $(document).ready(function() {
 	              socket.send(JSON.stringify({
 	            	  //.trim() elimino espacio en blanco delante y detras (A LA IZQUIERDA LA CLAVE Y A LA DERECHA EL VALOR)
 	            	  'Clave_Accion': "Crear_FPBajo",
+	            	  'Clave_F_Tipo_Filtro':Valor_F_Tipo_Filtro,
 	                  'Clave_F_NombreFiltro': Valor_FNombreFiltro.trim(),
 	                  'Clave_F_Ap_db': Valor_F_Ap_db,
 	                  'Clave_F_As_db': Valor_F_As_db,
@@ -211,7 +225,7 @@ $(document).ready(function() {
               else { 
             	  console.log("[FRONT] Mensaje en blanco")
 				}
-              //Devuelo los mismos valores al formulario
+              //Reinicio los valores
               NombreFiltro_InputDom.value = "";
               Ap_db_InputDom.value = "";
               As_db_InputDom.value = "";
