@@ -5,17 +5,15 @@ from asgiref.sync import async_to_sync
 import time
 from .models import ModeloFPBajo
 from .FiltroPasoBajo import FiltroPasoBajo
-
+from django.db import transaction
 
 @shared_task
 def Crear_FPBajo(Filtro_id,text_data):
-        #Extraigo el filtro de la base de datos
+        #Extraigo la instancia del filtro de la base de datos que le paso a la clase crear FiltroPasoBajo
         Filtro = ModeloFPBajo.objects.get(pk=Filtro_id)
         #Llamo a la clase que crea el filtro paso bajo
-        FPB=FiltroPasoBajo(Filtro.id,Filtro.nameFilter,Filtro.tipoFiltro,Filtro.Ap_db,Filtro.As_db,Filtro.Fp_Hz,Filtro.Fs_Hz,Filtro.Rg_Ohm,Filtro.Rl_Ohm)
+        FPB = FiltroPasoBajo(Filtro)
         FPB.Crear_Filtro_Paso_Bajo()
-        
-        
         #Actualizo el estado a completado:
         Filtro.estado = "Completado"
         Filtro.save()

@@ -8,7 +8,7 @@
 
 {% block contenido %}
 {% include 'AppBlog/BarraCrearEntradaBlog.html' %}
-	     	<form action="" method="POST">
+	     	<form enctype = "multipart/form-data" action="" method="POST">
 	     		{% csrf_token %}
 	     		<div class="container">
 	     				{{clave_formulario_template.title|as_crispy_field}}

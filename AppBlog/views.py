@@ -39,13 +39,14 @@ def VistaCrearEntradaBlog(request):
         return render(request, template , contexto)
     
     if request.method == "POST":
-        formulario = FormularioBlog(request.POST)
+        formulario = FormularioBlog(request.POST, request.FILES)
         if formulario.is_valid():
             autor = request.user
             #Uso formulario.cleaned_data.get en lugar de formulario.cleaned_data.get porque el primero chequea la condicion del formulario
             tituloEntrada = formulario.cleaned_data.get("title")
             contenidoEntrada = formulario.cleaned_data.get("content")
             imagenEntrada = formulario.cleaned_data.get("image")
+            print(imagenEntrada)
             #Guardo en la base de datos
             ModeloBlog.objects.create(title=tituloEntrada,content=contenidoEntrada,author=autor,image=imagenEntrada) 
             #La linea de arriba es igual que las 3 lineas de abajo comentadas:
@@ -82,15 +83,21 @@ def VistaEditarEntradaBlog(request, pk):
                 return render(request, template, contexto)        
             
             if request.method == "POST":
-                formulario = FormularioBlog(request.POST, instance=instancia_objeto_bbdd)
+                formulario = FormularioBlog(request.POST, request.FILES, instance=instancia_objeto_bbdd)
                 if formulario.is_valid():
                     autor = request.user
                     #Uso formulario.cleaned_data.get en lugar de request.POST.get porque el primero chequea la condicion del formulario
                     tituloEntrada = formulario.cleaned_data.get("title")
                     contenidoEntrada = formulario.cleaned_data.get("content")
                     imagenEntrada = formulario.cleaned_data.get("image")
+                    print(imagenEntrada)
                     #Edito en la base de datos
-                    ModeloBlog.objects.filter(pk=pk).update(title=tituloEntrada,content=contenidoEntrada,author=autor,image=imagenEntrada) 
+                    InstanciaModeloBlog = ModeloBlog.objects.get(pk=pk)
+                    InstanciaModeloBlog.title = tituloEntrada
+                    InstanciaModeloBlog.content = contenidoEntrada
+                    InstanciaModeloBlog.author = autor
+                    InstanciaModeloBlog.image = imagenEntrada
+                    InstanciaModeloBlog.save()
                     return redirect(reverse('name-blog')+"?editado")
             
     except ModeloBlog.DoesNotExist:

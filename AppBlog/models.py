@@ -7,7 +7,7 @@ class ModeloBlog(models.Model):
     content = RichTextField(verbose_name = "Contenido")
     #blank=True: Le decimos que puede ser un campo que este en blanco
     #null=True: Le decimos que puede ser un campo nullo sin nada
-    image = models.ImageField(verbose_name="Imagen",upload_to="Blog",null=True,blank=True)
+    image = models.ImageField(verbose_name="Imagen",upload_to='Blog',null=True,blank=True)
     #on_delete: Le dice a Django lo que tiene que hacer con esta entrada cuando se borre el Autor
     #models.CASCADE: Borra en cascada todas las entradas de este autor
     author = models.ForeignKey(User, verbose_name = "Autor",on_delete=models.CASCADE)

@@ -1,10 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import pandas
-import pyodbc
-from .models import ModeloFPBajo
-from io import BytesIO
+import io
 from django.core.files.base import ContentFile
 
 class FiltroPasoBajo:
@@ -19,31 +16,24 @@ class FiltroPasoBajo:
     Rl_Ohm: Resistencia de carga (load), medida en ohmios (Ohm)
     """   
 
-    #Metodo constructor
-    def __init__(self,id_Filtro,nombre_Filtro,tipoFiltro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm):
-        self.s_id = id_Filtro
-        self.s_nF = nombre_Filtro
-        self.s_tipoFiltro = tipoFiltro
-        self.s_Ap_db = Ap_db
-        self.s_As_db = As_db
-        self.s_Fp_Hz = Fp_Hz
-        self.s_Fs_Hz = Fs_Hz
-        self.s_Rg_Ohm = Rg_Ohm
-        self.s_Rl_Ohm = Rl_Ohm
-    
+    #Metodo constructor y le paso la instancia del filtro de la base de datos
+    def __init__(self,Filtro):
+        self.Filtro = Filtro
+
     #Me creo esta funcion para que sea escalable el filtro por si hay que cambiar el orden del filtro
     def Valores_Filtro(self):
-        id_Filtro = self.s_id
-        n_Filtro = self.s_nF
-        tipo_Filtro = self.s_tipoFiltro
-        Ap_db = self.s_Ap_db
-        As_db = self.s_As_db
-        Fp_Hz = self.s_Fp_Hz
-        Fs_Hz = self.s_Fs_Hz
-        Rg_Ohm = self.s_Rg_Ohm
-        Rl_Ohm = self.s_Rl_Ohm
-        return (id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm)
-    
+        InstanciaFiltro = self.Filtro
+        id_Filtro = self.Filtro.id
+        n_Filtro = self.Filtro.nameFilter
+        tipo_Filtro = self.Filtro.tipoFiltro
+        Ap_db = self.Filtro.Ap_db
+        As_db = self.Filtro.As_db
+        Fp_Hz = self.Filtro.Fp_Hz
+        Fs_Hz = self.Filtro.Fs_Hz
+        Rg_Ohm = self.Filtro.Rg_Ohm
+        Rl_Ohm = self.Filtro.Rl_Ohm
+        return (InstanciaFiltro,id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm)
+        
     #Normalizo la frencuencia para sacar la omega
     def Frecuencia_Normalizada(self,Fp_Hz,Fs_Hz):
         Wp = (2*np.pi*Fp_Hz)
@@ -117,7 +107,7 @@ class FiltroPasoBajo:
         return(Ap_db,As_db,Etiqueta_DB,escala_mayor_db)           
       
     #En lugar de pasarselo como parametro a la funcion uso las variables del constructor
-    def Dibujar_Plantilla_Filtro(self,Filtro_id,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_Db,Escala_Mayor_Frecuencia,Escala_Mayor_DB):
+    def Dibujar_Plantilla_Filtro(self,InstanciaFiltro,Filtro_id,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_Db,Escala_Mayor_Frecuencia,Escala_Mayor_DB):
             #Creo la figura
             Figura = plt.figure()
                 
@@ -184,15 +174,21 @@ class FiltroPasoBajo:
             plt.title('Plantilla de atenuacion normalizada del filtro')
             plt.grid(True)
             
+            f = io.BytesIO()
+            plt.savefig(f)
+            content_file = ContentFile(f.getvalue())
+            InstanciaFiltro.imagePlantilla = content_file
+            InstanciaFiltro.nameFilter = "FiltroGuardado"
+            InstanciaFiltro.save()
 
-            
+    
     def Crear_Filtro_Paso_Bajo(self):
-        FPB=FiltroPasoBajo(self.s_id,self.s_nF,self.s_tipoFiltro,self.s_Ap_db,self.s_As_db,self.s_Fp_Hz,self.s_Fs_Hz,self.s_Rg_Ohm,self.s_Rl_Ohm)
-        (id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm) = FPB.Valores_Filtro()
+        FPB=FiltroPasoBajo(self.Filtro)
+        (InstanciaFiltro,id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm) = FPB.Valores_Filtro()
         (OMEGAp,OMEGAs)=FPB.Frecuencia_Normalizada(Fp_Hz,Fs_Hz)
         (Fp,Fs,Etiqueta_F,escala_max_F) = FPB.Escalar_Frecuencia(Fp_Hz,Fs_Hz)
         (Ap,As,Etiqueta_DB,escala_max_DB) = FPB.Escalar_db(Ap_db,As_db)
         if ( (Etiqueta_F=="Herzios [Hz]")  or (Etiqueta_F=="KiloHerzios [KHz]")  or (Etiqueta_F=="MegaHerzios [MHz]")  or (Etiqueta_F=="GigaHerzios [GHz]") or (Etiqueta_F=="TeraHerzios [THz]") or (Etiqueta_F=="PetaHerzios [PHz]")):
-            FPB.Dibujar_Plantilla_Filtro(id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
+            FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
         else:
             print("fuera de rango")
