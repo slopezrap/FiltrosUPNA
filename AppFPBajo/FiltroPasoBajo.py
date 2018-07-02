@@ -1,8 +1,8 @@
-import numpy as np
+import os
 import matplotlib
 import matplotlib.pyplot as plt
-import io
-from django.core.files.base import ContentFile
+import math
+from .models import Filtro_Butterworth
 
 class FiltroPasoBajo:
     """
@@ -36,10 +36,16 @@ class FiltroPasoBajo:
         
     #Normalizo la frencuencia para sacar la omega
     def Frecuencia_Normalizada(self,Fp_Hz,Fs_Hz):
-        Wp = (2*np.pi*Fp_Hz)
-        Ws = (2*np.pi*Fs_Hz)
-        OMEGAp= Wp/Wp
-        OMEGAs= Ws/Wp
+        Wp = (2*math.pi*Fp_Hz)
+        Ws = (2*math.pi*Fs_Hz)
+        try:
+            OMEGAp= Wp/Wp
+        except ZeroDivisionError:
+            OMEGAp=0
+        try:
+            OMEGAs= Ws/Wp
+        except ZeroDivisionError:
+            OMEGAs = 0
         return(OMEGAp,OMEGAs)  
     
     #Escalo las frecuencias para poner las etiquetas en cada plantilla
@@ -163,32 +169,91 @@ class FiltroPasoBajo:
             Plantilla_Filtro.add_patch(BandaDePasoAtenuacion)
             Plantilla_Filtro.add_patch(BandaDeTransicion)
             Plantilla_Filtro.add_patch(BandaDeStop)
-            plt.xlim([0,OMEGAs+((2*np.pi*Escala_Mayor_Frecuencia)/(2*np.pi*Fp))])
-            plt.ylim([0,(As + Escala_Mayor_DB)])
-            plt.annotate('OMEGAp', xy=(0, 0), xytext=(OMEGAp,0) )
-            plt.annotate('OMEGAs', xy=(0, 0), xytext=(OMEGAs,0) )
-            plt.annotate('Ap', xy=(0, 0), xytext=(0, Ap) )
-            plt.annotate('As', xy=(0, 0), xytext=(0, As) )
-            plt.xlabel("OMEGAp [Wp/Wp] y OMEGAs [Ws/Wp] siendo W=2*pi*f")
-            plt.ylabel(Etiqueta_Db)
-            plt.title('Plantilla de atenuacion normalizada del filtro')
-            plt.grid(True)
+            try:
+                plt.xlim([0,OMEGAs+((2*math.pi*Escala_Mayor_Frecuencia)/(2*math.pi*Fp))])
+                plt.ylim([0,(As + Escala_Mayor_DB)])
+                plt.annotate('OMEGAp', xy=(0, 0), xytext=(OMEGAp,0) )
+                plt.annotate('OMEGAs', xy=(0, 0), xytext=(OMEGAs,0) )
+                plt.annotate('Ap', xy=(0, 0), xytext=(0, Ap) )
+                plt.annotate('As', xy=(0, 0), xytext=(0, As) )
+                plt.xlabel("OMEGAp [Wp/Wp] y OMEGAs [Ws/Wp] siendo W=2*pi*f")
+                plt.ylabel(Etiqueta_Db)
+                plt.title('Plantilla de atenuacion normalizada del filtro')
+                plt.grid(True)
+            except ZeroDivisionError:
+                pass
             
-            f = io.BytesIO()
-            plt.savefig(f)
-            content_file = ContentFile(f.getvalue())
-            InstanciaFiltro.imagePlantilla = content_file
+            """esto debe guardar la imagen en la base de datos si se ejecuta bien celery
+            figure = io.BytesIO()
+            plt.savefig(figure, format="png")
+            content_file = ImageFile(figure)
             InstanciaFiltro.nameFilter = "FiltroGuardado"
+            InstanciaFiltro.imagePlantilla.save('imagen.png', content_file)
             InstanciaFiltro.save()
-
-    
+            """
+            """mientras hago una chapucilla que es coger el path donde se guardan las imagenes predefinido en models y concatenar a ese path el nombre del fitro y el id"""
+            #pathImagen es la URL donde guardare la imagen
+            pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+'\media\FPBajo')
+            #name_id_Filtro es el nombre del filtro y el la primary key del filtro para aniadirlo a la url
+            #Pongo la doble \\ porque tengo que escapar la barra \
+            name_id_Filtro = ('\\'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
+            #Guardo el la imagen del filtro en el pc
+            Figura.savefig(pathImagen+name_id_Filtro)
+            #Leo del pc la imagen del filtro para guardarla en la BBDD
+            InstanciaFiltro.imagePlantilla = (pathImagen+name_id_Filtro)
+            
+    def Calcular_Orden_Filtro_Butterworth(self,As_db,Ap_db,OMEGAs):
+        try:
+            deltaCuadrado = float(  ( math.pow(10,(As_db/10)) ) -1 )
+            epsilonCuadrado = float( ( math.pow(10,(Ap_db/10)) ) -1 )
+            raizDeltaEpsilon = float( math.sqrt(deltaCuadrado/epsilonCuadrado) )
+            logaritmoRaizDeltaEpsilon = float( math.log(raizDeltaEpsilon,10) )
+            OrdenFiltro = float( (logaritmoRaizDeltaEpsilon/(math.log(OMEGAs,10))) )
+            return ( math.ceil(OrdenFiltro) , epsilonCuadrado )
+        except ZeroDivisionError:
+            return ( 0 )
+        
+    def Calcular_Orden_Filtro_Chebyshev(self,As_db,Ap_db,OMEGAs):
+        try:
+            deltaCuadrado = float(  ( math.pow(10,(As_db/10)) ) -1 )
+            epsilonCuadrado = float( ( math.pow(10,(Ap_db/10)) ) -1 )
+            raizDeltaEpsilon = float( math.sqrt(deltaCuadrado/epsilonCuadrado) )
+            OrdenFiltro = float ( ( math.acosh(raizDeltaEpsilon) / math.acosh(OMEGAs) ) )
+            return ( math.ceil(OrdenFiltro) , epsilonCuadrado )
+        except ZeroDivisionError:
+            return ( 0 )  
+        
+    def Calcular_Frecuencia_Corte_Butterworth(self,OrdenFiltro,epsilonCuadrado):
+        try:
+            Omegamenos3db = float ( ( 1/( math.pow(epsilonCuadrado,(1/(2*OrdenFiltro))) ) ) )
+            return ( Omegamenos3db )
+        except ZeroDivisionError:
+            return ( 0 )      
+        
+    def Prototipo_Filtro_Butterworth(self,OrdenFiltro):
+        print("aqui estoy")
+        print(OrdenFiltro)
+        #Extraigo la instancia del filtro de la base de datos que le paso a la clase crear FiltroPasoBajo
+        FiltroButterworth = Filtro_Butterworth.objects.get(pk=OrdenFiltro)
+        print(FiltroButterworth)
+        #Llamo a la clase que crea el filtro paso bajo
+        print(FiltroButterworth.g_1)
+        
+        
     def Crear_Filtro_Paso_Bajo(self):
         FPB=FiltroPasoBajo(self.Filtro)
         (InstanciaFiltro,id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm) = FPB.Valores_Filtro()
         (OMEGAp,OMEGAs)=FPB.Frecuencia_Normalizada(Fp_Hz,Fs_Hz)
         (Fp,Fs,Etiqueta_F,escala_max_F) = FPB.Escalar_Frecuencia(Fp_Hz,Fs_Hz)
         (Ap,As,Etiqueta_DB,escala_max_DB) = FPB.Escalar_db(Ap_db,As_db)
-        if ( (Etiqueta_F=="Herzios [Hz]")  or (Etiqueta_F=="KiloHerzios [KHz]")  or (Etiqueta_F=="MegaHerzios [MHz]")  or (Etiqueta_F=="GigaHerzios [GHz]") or (Etiqueta_F=="TeraHerzios [THz]") or (Etiqueta_F=="PetaHerzios [PHz]")):
+             
+        
+        if (tipo_Filtro == "Butterworth") :
             FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
-        else:
-            print("fuera de rango")
+            (OrdenFiltro,epsilonCuadrado) = FPB.Calcular_Orden_Filtro_Butterworth(As_db,Ap_db,OMEGAs)
+            Omegamenos3db = FPB.Calcular_Frecuencia_Corte_Butterworth(OrdenFiltro, epsilonCuadrado)
+            FPB.Prototipo_Filtro_Butterworth(OrdenFiltro)
+
+        elif (tipo_Filtro == "Chebyshev") :
+            FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
+            (OrdenFiltro,epsilonCuadrado) = FPB.Calcular_Orden_Filtro_Chebyshev(As_db,Ap_db,OMEGAs)

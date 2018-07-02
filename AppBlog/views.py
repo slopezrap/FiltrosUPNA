@@ -46,11 +46,18 @@ def VistaCrearEntradaBlog(request):
             tituloEntrada = formulario.cleaned_data.get("title")
             contenidoEntrada = formulario.cleaned_data.get("content")
             imagenEntrada = formulario.cleaned_data.get("image")
-            print(imagenEntrada)
-            #Guardo en la base de datos
-            ModeloBlog.objects.create(title=tituloEntrada,content=contenidoEntrada,author=autor,image=imagenEntrada) 
-            #La linea de arriba es igual que las 3 lineas de abajo comentadas:
-            #objeto = ModeloBlog()
+            EntradaBlog = ModeloBlog(
+                title = tituloEntrada,
+                content = contenidoEntrada,
+                author = autor,
+                image = imagenEntrada, 
+                )
+            EntradaBlog.save()
+            
+            #Guardo en la base de datos otra forma
+            #ModeloBlog.objects.create(title=tituloEntrada,content=contenidoEntrada,author=autor,image=imagenEntrada) 
+            #Guardo en la base de datos otra forma 2
+            #obj = ModeloBlog()
             #obj.title = tituloEntrada
             #obj.save
             return redirect(reverse('name-blog'))

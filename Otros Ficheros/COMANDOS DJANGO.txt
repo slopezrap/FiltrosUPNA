@@ -6,3 +6,4 @@
 - En bash: service redis-server start
 - En cmd: python manage.py runserver
 - En cmd: celery -A NOMBREPROYECTO.celery worker -l info -P eventlet 
+- En cmd: celery -A ProyectoFiltrosUPNA.celery worker -l info -P eventlet 

@@ -40,10 +40,9 @@ class Filtro_Butterworth(models.Model):
     g_7 = models.FloatField()
     g_8 = models.FloatField()
     g_9 = models.FloatField()
-    g10 = models.FloatField()
+    g_10 = models.FloatField()
 
 
-        
-    def __str__(self):
-        return self.nameFilter    
+    def __int__(self):
+        return self.ordenFiltro    
         
