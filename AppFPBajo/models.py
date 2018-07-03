@@ -31,6 +31,8 @@ class ModeloFPBajo(models.Model):
 
 class Filtro_Butterworth(models.Model):
     ordenFiltro  = models.IntegerField(verbose_name = "Orden del Filtro")
+    Rg = models.FloatField()
+    Rl = models.FloatField()
     g_1 = models.FloatField()
     g_2 = models.FloatField()
     g_3 = models.FloatField()
@@ -45,4 +47,24 @@ class Filtro_Butterworth(models.Model):
 
     def __int__(self):
         return self.ordenFiltro    
+    
+    
+class Filtro_Chebyshev(models.Model):
+    ordenFiltro  = models.IntegerField(verbose_name = "Orden del Filtro")
+    Rg = models.FloatField()
+    Rl = models.FloatField() 
+    g_1 = models.FloatField()
+    g_2 = models.FloatField()
+    g_3 = models.FloatField()
+    g_4 = models.FloatField()
+    g_5 = models.FloatField()
+    g_6 = models.FloatField()
+    g_7 = models.FloatField()
+    g_8 = models.FloatField()
+    g_9 = models.FloatField()
+    g_10 = models.FloatField()
+
+
+    def __int__(self):
+        return self.ordenFiltro   
         

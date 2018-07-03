@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import math
 from .models import Filtro_Butterworth
 
+
 class FiltroPasoBajo:
     """
     id: Identificiador del filtro en la base de datos
@@ -210,8 +211,8 @@ class FiltroPasoBajo:
             logaritmoRaizDeltaEpsilon = float( math.log(raizDeltaEpsilon,10) )
             OrdenFiltro = float( (logaritmoRaizDeltaEpsilon/(math.log(OMEGAs,10))) )
             return ( math.ceil(OrdenFiltro) , epsilonCuadrado )
-        except ZeroDivisionError:
-            return ( 0 )
+        except:
+            return ( 0 , 0 )
         
     def Calcular_Orden_Filtro_Chebyshev(self,As_db,Ap_db,OMEGAs):
         try:
@@ -220,26 +221,32 @@ class FiltroPasoBajo:
             raizDeltaEpsilon = float( math.sqrt(deltaCuadrado/epsilonCuadrado) )
             OrdenFiltro = float ( ( math.acosh(raizDeltaEpsilon) / math.acosh(OMEGAs) ) )
             return ( math.ceil(OrdenFiltro) , epsilonCuadrado )
-        except ZeroDivisionError:
+        except:
             return ( 0 )  
         
     def Calcular_Frecuencia_Corte_Butterworth(self,OrdenFiltro,epsilonCuadrado):
         try:
             Omegamenos3db = float ( ( 1/( math.pow(epsilonCuadrado,(1/(2*OrdenFiltro))) ) ) )
             return ( Omegamenos3db )
-        except ZeroDivisionError:
+        except:
             return ( 0 )      
         
     def Prototipo_Filtro_Butterworth(self,OrdenFiltro):
-        print("aqui estoy")
-        print(OrdenFiltro)
-        #Extraigo la instancia del filtro de la base de datos que le paso a la clase crear FiltroPasoBajo
-        FiltroButterworth = Filtro_Butterworth.objects.get(pk=OrdenFiltro)
-        print(FiltroButterworth)
-        #Llamo a la clase que crea el filtro paso bajo
-        print(FiltroButterworth.g_1)
-        
-        
+        Lista_G_Filtro = []
+        try:
+            #Extraigo la instancia del filtro de la base de datos que le paso a la clase crear FiltroPasoBajo
+            FiltroButterworth = Filtro_Butterworth.objects.get(ordenFiltro=OrdenFiltro)
+            #Necesito el +1 porque si orden es 4 va del 1 al 4 , coge uno y excluye 4
+            for x in range(1, int(OrdenFiltro)+1):
+                # Necesito obtener FiltroButterworth.g_x siendo x lo que recorro
+                prefijo = "FiltroButterworth"
+                sufijo = ".g_"+str(x)
+                PRE_SUF = '{0}{1}'.format(prefijo, sufijo)  # FiltroButterworth.g_1 , ...
+                Lista_G_Filtro.append(eval(PRE_SUF))
+            return (Lista_G_Filtro)
+        except:
+            return ( 0 )
+
     def Crear_Filtro_Paso_Bajo(self):
         FPB=FiltroPasoBajo(self.Filtro)
         (InstanciaFiltro,id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm) = FPB.Valores_Filtro()
@@ -249,11 +256,17 @@ class FiltroPasoBajo:
              
         
         if (tipo_Filtro == "Butterworth") :
+            # 1 Dibujar la plantilla y plantilla normalizada del filtro
             FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
+            # 2 Calcular el orden del filtro
             (OrdenFiltro,epsilonCuadrado) = FPB.Calcular_Orden_Filtro_Butterworth(As_db,Ap_db,OMEGAs)
+            # SOLO BUTTERWORTH - Calcular la frencuencia de corte
             Omegamenos3db = FPB.Calcular_Frecuencia_Corte_Butterworth(OrdenFiltro, epsilonCuadrado)
+            # 3 Creo prototipo del filtro
             FPB.Prototipo_Filtro_Butterworth(OrdenFiltro)
 
         elif (tipo_Filtro == "Chebyshev") :
+            # 1 Dibujar la plantilla y plantilla normalizada del filtro
             FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
+            # 2 Calcular el orden del filtro
             (OrdenFiltro,epsilonCuadrado) = FPB.Calcular_Orden_Filtro_Chebyshev(As_db,Ap_db,OMEGAs)
