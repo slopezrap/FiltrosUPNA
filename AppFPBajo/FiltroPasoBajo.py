@@ -1,9 +1,20 @@
+from django.conf import settings
 import os
-import matplotlib
-import matplotlib.pyplot as plt
 import math
-from .models import Filtro_Butterworth
+import matplotlib
+matplotlib.use('Agg') #  Libreria para pintar los circuitos
+import matplotlib.pyplot as plt #  Libreria para pintar las plantillas del filtro
 
+#===============================================================================
+#  Libreria para la base de datos del filtro
+#===============================================================================
+from .models import Filtro_Butterworth
+from .models import Filtro_Chebyshev
+#===============================================================================
+# Libreria para pintar los circuitos
+#===============================================================================
+import SchemDraw as schem
+import SchemDraw.elements as e
 
 class FiltroPasoBajo:
     """
@@ -106,13 +117,16 @@ class FiltroPasoBajo:
         #Fuera de rango
         else:
             etiqueta = "Fuera de rango" 
-            
-    #Escalo las frecuencias para poner las etiquetas en cada plantilla      
+      
+    #Escalo las frecuencias para poner las etiquetas en cada plantilla        
     def Escalar_db(self,Ap_db,As_db):
         Etiqueta_DB = "Decibelios [db]"
         escala_mayor_db = 10
-        return(Ap_db,As_db,Etiqueta_DB,escala_mayor_db)           
-      
+        return(Ap_db,As_db,Etiqueta_DB,escala_mayor_db) 
+              
+    #=========================================================================
+    #  1 Dibujar la plantilla y plantilla normalizada del filtro
+    #=========================================================================
     #En lugar de pasarselo como parametro a la funcion uso las variables del constructor
     def Dibujar_Plantilla_Filtro(self,InstanciaFiltro,Filtro_id,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_Db,Escala_Mayor_Frecuencia,Escala_Mayor_DB):
             #Creo la figura
@@ -183,26 +197,20 @@ class FiltroPasoBajo:
                 plt.grid(True)
             except ZeroDivisionError:
                 pass
-            
-            """esto debe guardar la imagen en la base de datos si se ejecuta bien celery
-            figure = io.BytesIO()
-            plt.savefig(figure, format="png")
-            content_file = ImageFile(figure)
-            InstanciaFiltro.nameFilter = "FiltroGuardado"
-            InstanciaFiltro.imagePlantilla.save('imagen.png', content_file)
-            InstanciaFiltro.save()
-            """
-            """mientras hago una chapucilla que es coger el path donde se guardan las imagenes predefinido en models y concatenar a ese path el nombre del fitro y el id"""
+
             #pathImagen es la URL donde guardare la imagen
-            pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+'\media\FPBajo')
+            pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+settings.MEDIA_FPB)
             #name_id_Filtro es el nombre del filtro y el la primary key del filtro para aniadirlo a la url
             #Pongo la doble \\ porque tengo que escapar la barra \
-            name_id_Filtro = ('\\'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
+            name_id_Filtro = ('\\'+'Plantilla_Filtro_'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
             #Guardo el la imagen del filtro en el pc
             Figura.savefig(pathImagen+name_id_Filtro)
             #Leo del pc la imagen del filtro para guardarla en la BBDD
             InstanciaFiltro.imagePlantilla = (pathImagen+name_id_Filtro)
-            
+ 
+    #=========================================================================
+    #  2 Calcular el orden del filtro
+    #=========================================================================            
     def Calcular_Orden_Filtro_Butterworth(self,As_db,Ap_db,OMEGAs):
         try:
             deltaCuadrado = float(  ( math.pow(10,(As_db/10)) ) -1 )
@@ -223,7 +231,10 @@ class FiltroPasoBajo:
             return ( math.ceil(OrdenFiltro) , epsilonCuadrado )
         except:
             return ( 0 )  
-        
+
+    #=========================================================================
+    #  SOLO BUTTERWORTH - Calcular la frencuencia de corte
+    #=========================================================================           
     def Calcular_Frecuencia_Corte_Butterworth(self,OrdenFiltro,epsilonCuadrado):
         try:
             Omegamenos3db = float ( ( 1/( math.pow(epsilonCuadrado,(1/(2*OrdenFiltro))) ) ) )
@@ -231,6 +242,9 @@ class FiltroPasoBajo:
         except:
             return ( 0 )      
         
+    #=========================================================================
+    #  3 Creo prototipo del filtro
+    #=========================================================================       
     def Prototipo_Filtro_Butterworth(self,OrdenFiltro):
         Lista_G_Filtro = []
         try:
@@ -247,13 +261,86 @@ class FiltroPasoBajo:
         except:
             return ( 0 )
 
+    def Prototipo_Filtro_Chebyshev(self,OrdenFiltro):
+        Lista_G_Filtro = []
+        try:
+            #Extraigo la instancia del filtro de la base de datos que le paso a la clase crear FiltroPasoBajo
+            FiltroChebyshev = Filtro_Chebyshev.objects.get(ordenFiltro=OrdenFiltro)
+            #Necesito el +1 porque si orden es 4 va del 1 al 4 , coge uno y excluye 4
+            for x in range(1, int(OrdenFiltro)+1):
+                # Necesito obtener FiltroChebyshev.g_x siendo x lo que recorro
+                prefijo = "FiltroChebyshev"
+                sufijo = ".g_"+str(x)
+                PRE_SUF = '{0}{1}'.format(prefijo, sufijo)  # FiltroChebyshev.g_1 , ...
+                Lista_G_Filtro.append(eval(PRE_SUF))
+            return (Lista_G_Filtro)
+        except:
+            return ( 0 )
+        
+    #=========================================================================
+    #  4 Dibujo los prototipos del filtro
+    #========================================================================= 
+    def Dibujar_Prototipo_Filtro(self,ListaDeLosGFiltro,InstanciaFiltro):
+        #Empiezo a pintar el circuito
+        d = schem.Drawing()
+        Tierra = d.add(e.GND)
+        V = d.add(e.SOURCE_SIN)
+        R = d.add(e.RES, d='right')
+        
+        if round( len(ListaDeLosGFiltro) / 2 ) == 0:
+            B = d.add(e.INDUCTOR2, d='right',label=str(ListaDeLosGFiltro[0]))
+            d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
+            L = d.add(e.LINE, d='down')
+            Tierra = d.add(e.GND)
+              
+        else:
+            def anidir_bobina(posicion_bobina, ListaDeLosGFiltro):
+                d.pop()  #RECUPERO LA POSICION
+                B = d.add(e.INDUCTOR2, d='right',label=str(ListaDeLosGFiltro[posicion_bobina]))
+                d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
+            
+                
+            def anidiar_condensador(posicion_condensador, ListaDeLosGFiltro):
+                if (posicion_condensador == (len(ListaDeLosGFiltro))):
+                    L = d.add(e.LINE, d='down')
+                    Tierra = d.add(e.GND)
+            
+                else:
+                    C = d.add(e.CAP,d='down',label=str(ListaDeLosGFiltro[posicion_condensador])) 
+                    Tierra = d.add(e.GND)
+            
+            posicion_bobina = 0 
+            posicion_condensador = 1
+            for i in range(0,  round( len(ListaDeLosGFiltro) / 2 ) ):
+                #Para recorre cada malla lo que haga es round(len(ListaDeLosGFiltro)/2)
+                #En cada malla aniado una bobina 
+                anidir_bobina(posicion_bobina,ListaDeLosGFiltro)
+                #En cada malla aniado un condensador siempre que la posicion del condensador no sea la longitud de la ListaDeLosGFiltro, ya que eso quiere decir que en esa
+                #malla no habra condensador.
+                #Si tengo un array de 3 posiciones sera que hay bobina pos[0], condensador pos[1], bobina pos[2]. La longitud de la ListaDeLosGFiltro es 3 y la posicion del siguiente condensador sera 3
+                #por lo que pos[3] == 3 entonces no existe en la ListaDeLosGFiltro la pos[3] por lo que va a tierra 
+                anidiar_condensador(posicion_condensador,ListaDeLosGFiltro)
+                posicion_bobina = posicion_condensador + 1
+                posicion_condensador = posicion_bobina + 1
+                
+        pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+settings.MEDIA_FPB)
+        #name_id_Filtro es el nombre del filtro y el la primary key del filtro para aniadirlo a la url
+        #Pongo la doble \\ porque tengo que escapar la barra \
+        name_id_Filtro = ('\\'+'Plantilla_Prototipo_Filtro_'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
+        d.draw()
+        d.save(pathImagen+name_id_Filtro)
+        #Leo del pc la imagen del filtro para guardarla en la BBDD
+        InstanciaFiltro.imagePrototipoFiltro = (pathImagen+name_id_Filtro)
+        
+    #=========================================================================
+    #  LLAMADA DE METODOS
+    #=========================================================================  
     def Crear_Filtro_Paso_Bajo(self):
         FPB=FiltroPasoBajo(self.Filtro)
         (InstanciaFiltro,id_Filtro,n_Filtro,tipo_Filtro,Ap_db,As_db,Fp_Hz,Fs_Hz,Rg_Ohm,Rl_Ohm) = FPB.Valores_Filtro()
         (OMEGAp,OMEGAs)=FPB.Frecuencia_Normalizada(Fp_Hz,Fs_Hz)
         (Fp,Fs,Etiqueta_F,escala_max_F) = FPB.Escalar_Frecuencia(Fp_Hz,Fs_Hz)
         (Ap,As,Etiqueta_DB,escala_max_DB) = FPB.Escalar_db(Ap_db,As_db)
-             
         
         if (tipo_Filtro == "Butterworth") :
             # 1 Dibujar la plantilla y plantilla normalizada del filtro
@@ -263,10 +350,16 @@ class FiltroPasoBajo:
             # SOLO BUTTERWORTH - Calcular la frencuencia de corte
             Omegamenos3db = FPB.Calcular_Frecuencia_Corte_Butterworth(OrdenFiltro, epsilonCuadrado)
             # 3 Creo prototipo del filtro
-            FPB.Prototipo_Filtro_Butterworth(OrdenFiltro)
+            (Lista_G_Filtro) = FPB.Prototipo_Filtro_Butterworth(OrdenFiltro)
+            # 4 Dibujo los prototipos del filtro
+            FPB.Dibujar_Prototipo_Filtro(Lista_G_Filtro,InstanciaFiltro)
 
         elif (tipo_Filtro == "Chebyshev") :
             # 1 Dibujar la plantilla y plantilla normalizada del filtro
             FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
             # 2 Calcular el orden del filtro
             (OrdenFiltro,epsilonCuadrado) = FPB.Calcular_Orden_Filtro_Chebyshev(As_db,Ap_db,OMEGAs)
+            # 3 Creo prototipo del filtro
+            (Lista_G_Filtro) = FPB.Prototipo_Filtro_Chebyshev(OrdenFiltro)
+            # 4 Dibujo los prototipos del filtro
+            FPB.Dibujar_Prototipo_Filtro(Lista_G_Filtro,InstanciaFiltro)

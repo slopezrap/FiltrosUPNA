@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .tasks import Crear_FPBajo
 from .models import ModeloFPBajo
-from django.db import transaction
+
 
 
 class Consumidor(AsyncWebsocketConsumer):

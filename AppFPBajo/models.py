@@ -9,6 +9,8 @@ class ModeloFPBajo(models.Model):
     estado = models.CharField(max_length=100, null=True, blank=True)
     celery_id = models.CharField(max_length=200, null=True, blank=True)
     imagePlantilla = models.ImageField(verbose_name="Imagen Plantilla",upload_to="FPBajo",null=True,blank=True)
+    imagePrototipoFiltro = models.ImageField(verbose_name="Imagen Prototipo Filtro",upload_to="FPBajo",null=True,blank=True)
+    imageDesnormalizadaFreImp = models.ImageField(verbose_name="Imagen Desnormalizada en Frecuencia e Impedancia",upload_to="FPBajo",null=True,blank=True)
     tipoFiltro = models.CharField(max_length=100, null=True, blank=True)
     Ap_db = models.FloatField(verbose_name="Atenuacion en la banda de paso [dB]", default=None)
     As_db = models.FloatField(verbose_name="Atenuacion en la banda eliminada (stop) [dB]", default=None)
