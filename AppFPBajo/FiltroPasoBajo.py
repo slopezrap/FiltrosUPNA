@@ -195,7 +195,7 @@ class FiltroPasoBajo:
                 plt.ylabel(Etiqueta_Db)
                 plt.title('Plantilla de atenuacion normalizada del filtro')
                 plt.grid(True)
-            except ZeroDivisionError:
+            except:
                 pass
 
             #pathImagen es la URL donde guardare la imagen
@@ -281,57 +281,160 @@ class FiltroPasoBajo:
     #  4 Dibujo los prototipos del filtro
     #========================================================================= 
     def Dibujar_Prototipo_Filtro(self,ListaDeLosGFiltro,InstanciaFiltro):
-        #Empiezo a pintar el circuito
-        d = schem.Drawing()
-        Tierra = d.add(e.GND)
-        V = d.add(e.SOURCE_SIN)
-        R = d.add(e.RES, d='right')
-        
-        if round( len(ListaDeLosGFiltro) / 2 ) == 0:
-            B = d.add(e.INDUCTOR2, d='right',label=str(ListaDeLosGFiltro[0]))
-            d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
-            L = d.add(e.LINE, d='down')
+        try:
+            d = schem.Drawing()
             Tierra = d.add(e.GND)
-              
-        else:
-            def anidir_bobina(posicion_bobina, ListaDeLosGFiltro):
-                d.pop()  #RECUPERO LA POSICION
-                B = d.add(e.INDUCTOR2, d='right',label=str(ListaDeLosGFiltro[posicion_bobina]))
+            V = d.add(e.SOURCE_SIN)
+            R = d.add(e.RES, d='right') #Resistencia del generador -> Rg
+            
+            if round( len(ListaDeLosGFiltro) / 2 ) == 0:
+                B = d.add(e.INDUCTOR2, d='right',label=str('{:.3g}'.format( ListaDeLosGFiltro[0] )))
                 d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
-            
+                L = d.add(e.LINE, d='right')
+                R = d.add(e.RES, d='down') #Resistencia de carga (load) -> Rl
+                Tierra = d.add(e.GND)
+                  
+            else:
+                def anidir_bobina(posicion_bobina, ListaDeLosGFiltro):
+                    d.pop()  #RECUPERO LA POSICION
+                    B = d.add(e.INDUCTOR2, d='right',label=str('{:.3g}'.format( ListaDeLosGFiltro[posicion_bobina] )))
+                    d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
                 
-            def anidiar_condensador(posicion_condensador, ListaDeLosGFiltro):
-                if (posicion_condensador == (len(ListaDeLosGFiltro))):
-                    L = d.add(e.LINE, d='down')
-                    Tierra = d.add(e.GND)
-            
-                else:
-                    C = d.add(e.CAP,d='down',label=str(ListaDeLosGFiltro[posicion_condensador])) 
-                    Tierra = d.add(e.GND)
-            
-            posicion_bobina = 0 
-            posicion_condensador = 1
-            for i in range(0,  round( len(ListaDeLosGFiltro) / 2 ) ):
-                #Para recorre cada malla lo que haga es round(len(ListaDeLosGFiltro)/2)
-                #En cada malla aniado una bobina 
-                anidir_bobina(posicion_bobina,ListaDeLosGFiltro)
-                #En cada malla aniado un condensador siempre que la posicion del condensador no sea la longitud de la ListaDeLosGFiltro, ya que eso quiere decir que en esa
-                #malla no habra condensador.
-                #Si tengo un array de 3 posiciones sera que hay bobina pos[0], condensador pos[1], bobina pos[2]. La longitud de la ListaDeLosGFiltro es 3 y la posicion del siguiente condensador sera 3
-                #por lo que pos[3] == 3 entonces no existe en la ListaDeLosGFiltro la pos[3] por lo que va a tierra 
-                anidiar_condensador(posicion_condensador,ListaDeLosGFiltro)
-                posicion_bobina = posicion_condensador + 1
-                posicion_condensador = posicion_bobina + 1
+                    
+                def anidiar_condensador(posicion_condensador, ListaDeLosGFiltro):
+                    if (posicion_condensador == (len(ListaDeLosGFiltro))):
+                        L = d.add(e.LINE, d='right')
+                        R = d.add(e.RES, d='down') #Resistencia de carga (load) -> Rl
+                        Tierra = d.add(e.GND)
                 
-        pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+settings.MEDIA_FPB)
-        #name_id_Filtro es el nombre del filtro y el la primary key del filtro para aniadirlo a la url
-        #Pongo la doble \\ porque tengo que escapar la barra \
-        name_id_Filtro = ('\\'+'Plantilla_Prototipo_Filtro_'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
-        d.draw()
-        d.save(pathImagen+name_id_Filtro)
-        #Leo del pc la imagen del filtro para guardarla en la BBDD
-        InstanciaFiltro.imagePrototipoFiltro = (pathImagen+name_id_Filtro)
+                    else:
+                        if (posicion_condensador == (len(ListaDeLosGFiltro)-1)):
+                            C = d.add(e.CAP,d='down',label=str('{:.3g}'.format( ListaDeLosGFiltro[posicion_condensador] ))) 
+                            Tierra = d.add(e.GND)
+                            d.pop()  #RECUPERO LA POSICION
+                            L = d.add(e.LINE, d='right')
+                            R = d.add(e.RES, d='down') #Resistencia de carga (load) -> Rl
+                            Tierra = d.add(e.GND)
+                        else:
+                            C = d.add(e.CAP,d='down',label=str('{:.3g}'.format( ListaDeLosGFiltro[posicion_condensador] ))) 
+                            Tierra = d.add(e.GND)
+                
+                posicion_bobina = 0 
+                posicion_condensador = 1
+                for i in range(0,  math.ceil( len(ListaDeLosGFiltro) / 2 ) ):
+                    #Para recorre cada malla lo que haga es round(len(ListaDeLosGFiltro)/2)
+                    #En cada malla aniado una bobina 
+                    anidir_bobina(posicion_bobina,ListaDeLosGFiltro)
+                    #En cada malla aniado un condensador siempre que la posicion del condensador no sea la longitud de la ListaDeLosGFiltro, ya que eso quiere decir que en esa
+                    #malla no habra condensador.
+                    #Si tengo un array de 3 posiciones sera que hay bobina pos[0], condensador pos[1], bobina pos[2]. La longitud de la ListaDeLosGFiltro es 3 y la posicion del siguiente condensador sera 3
+                    #por lo que pos[3] == 3 entonces no existe en la ListaDeLosGFiltro la pos[3] por lo que va a tierra 
+                    anidiar_condensador(posicion_condensador,ListaDeLosGFiltro)
+                    posicion_bobina = posicion_condensador + 1
+                    posicion_condensador = posicion_bobina + 1
+                            
+            pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+settings.MEDIA_FPB)
+            #name_id_Filtro es el nombre del filtro y el la primary key del filtro para aniadirlo a la url
+            #Pongo la doble \\ porque tengo que escapar la barra \
+            name_id_Filtro = ('\\'+'Dibujo_Prototipo_Filtro_'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
+            d.draw()
+            d.save(pathImagen+name_id_Filtro)
+            #Leo del pc la imagen del filtro para guardarla en la BBDD
+            InstanciaFiltro.imagePrototipoFiltro = (pathImagen+name_id_Filtro)
+            
+        except:
+            pass
         
+    #=========================================================================
+    #  SOLO BUTTERWORTH - Desnormalizar en frecuencia
+    #=========================================================================   
+    def Desnormalizar_Frecuencia_Omegamenos3db_Butterworth(self,Omegamenos3db,Lista_G_Filtro):
+        try:
+            for i in range(0, len(Lista_G_Filtro)):
+                Lista_G_Filtro[i]=Lista_G_Filtro[i]/Omegamenos3db
+            return (Lista_G_Filtro)
+        except:
+            return ( 0 )
+    
+    #=========================================================================
+    #  5 Desnormalizacion en frecuencia a Wp y en resistencia generador Rg
+    #========================================================================= 
+    def Desnormalizar_Frecuencia_Impedancia(self,Fp_Hz,Rg_Ohm,Lista_G_Filtro):
+        for i in range(0, len(Lista_G_Filtro)):
+            if i%2 == 0: #Posiciones pares lista, porque son bobinas
+                Lista_G_Filtro[i]=Lista_G_Filtro[i]*(Rg_Ohm/(2*math.pi*Fp_Hz))
+            else:
+                Lista_G_Filtro[i]=Lista_G_Filtro[i]*(1/(Rg_Ohm*2*math.pi*Fp_Hz))  
+        return (Lista_G_Filtro)
+    
+    #=========================================================================
+    #  6 Dibujo el circuito desnormalizado frecuencia e impedancia
+    #========================================================================= 
+    def Dibujar_Filtro_Desnormalizado(self,ListaDeLosGFiltro,InstanciaFiltro):
+        try:
+            d = schem.Drawing()
+            Tierra = d.add(e.GND)
+            V = d.add(e.SOURCE_SIN)
+            R = d.add(e.RES, d='right') #Resistencia del generador -> Rg
+            
+            if round( len(ListaDeLosGFiltro) / 2 ) == 0:
+                B = d.add(e.INDUCTOR2, d='right',label=str('{:.3g}'.format( ListaDeLosGFiltro[0] )))
+                d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
+                L = d.add(e.LINE, d='right')
+                R = d.add(e.RES, d='down') #Resistencia de carga (load) -> Rl
+                Tierra = d.add(e.GND)
+                  
+            else:
+                def anidir_bobina(posicion_bobina, ListaDeLosGFiltro):
+                    d.pop()  #RECUPERO LA POSICION
+                    B = d.add(e.INDUCTOR2, d='right',label=str('{:.3g}'.format( ListaDeLosGFiltro[posicion_bobina] )))
+                    d.push() # GUARDO LA POSICION PARA LUEGO RECUPERARLO
+                
+                    
+                def anidiar_condensador(posicion_condensador, ListaDeLosGFiltro):
+                    if (posicion_condensador == (len(ListaDeLosGFiltro))):
+                        L = d.add(e.LINE, d='right')
+                        R = d.add(e.RES, d='down') #Resistencia de carga (load) -> Rl
+                        Tierra = d.add(e.GND)
+                
+                    else:
+                        if (posicion_condensador == (len(ListaDeLosGFiltro)-1)):
+                            C = d.add(e.CAP,d='down',label=str('{:.3g}'.format( ListaDeLosGFiltro[posicion_condensador] ))) 
+                            Tierra = d.add(e.GND)
+                            d.pop()  #RECUPERO LA POSICION
+                            L = d.add(e.LINE, d='right')
+                            R = d.add(e.RES, d='down') #Resistencia de carga (load) -> Rl
+                            Tierra = d.add(e.GND)
+                        else:
+                            C = d.add(e.CAP,d='down',label=str('{:.3g}'.format( ListaDeLosGFiltro[posicion_condensador] ) )) 
+                            Tierra = d.add(e.GND)
+                
+                posicion_bobina = 0 
+                posicion_condensador = 1
+                for i in range(0,  math.ceil( len(ListaDeLosGFiltro) / 2 ) ):
+                    #Para recorre cada malla lo que haga es round(len(ListaDeLosGFiltro)/2)
+                    #En cada malla aniado una bobina 
+                    anidir_bobina(posicion_bobina,ListaDeLosGFiltro)
+                    #En cada malla aniado un condensador siempre que la posicion del condensador no sea la longitud de la ListaDeLosGFiltro, ya que eso quiere decir que en esa
+                    #malla no habra condensador.
+                    #Si tengo un array de 3 posiciones sera que hay bobina pos[0], condensador pos[1], bobina pos[2]. La longitud de la ListaDeLosGFiltro es 3 y la posicion del siguiente condensador sera 3
+                    #por lo que pos[3] == 3 entonces no existe en la ListaDeLosGFiltro la pos[3] por lo que va a tierra 
+                    anidiar_condensador(posicion_condensador,ListaDeLosGFiltro)
+                    posicion_bobina = posicion_condensador + 1
+                    posicion_condensador = posicion_bobina + 1
+                            
+            pathImagen = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+settings.MEDIA_FPB)
+            #name_id_Filtro es el nombre del filtro y el la primary key del filtro para aniadirlo a la url
+            #Pongo la doble \\ porque tengo que escapar la barra \
+            name_id_Filtro = ('\\'+'Dibujo_Filtro_Desnormalizado_'+InstanciaFiltro.nameFilter+'_'+str(InstanciaFiltro.id)+'.png')
+            d.draw()
+            d.save(pathImagen+name_id_Filtro)
+            #Leo del pc la imagen del filtro para guardarla en la BBDD
+            InstanciaFiltro.imageDesnormalizadaFreImp = (pathImagen+name_id_Filtro)
+            
+        except:
+            pass    
+    
     #=========================================================================
     #  LLAMADA DE METODOS
     #=========================================================================  
@@ -353,7 +456,13 @@ class FiltroPasoBajo:
             (Lista_G_Filtro) = FPB.Prototipo_Filtro_Butterworth(OrdenFiltro)
             # 4 Dibujo los prototipos del filtro
             FPB.Dibujar_Prototipo_Filtro(Lista_G_Filtro,InstanciaFiltro)
-
+            #  SOLO BUTTERWORTH - Desnormalizar en frecuencia
+            (Lista_G_Filtro_Des) = FPB.Desnormalizar_Frecuencia_Omegamenos3db_Butterworth(Omegamenos3db,Lista_G_Filtro)
+            # 5 Desnormalizacion en frecuencia a Wp y en resistencia generador Rg
+            (Lista_G_Filtro_Des_Fre_Imp) = FPB.Desnormalizar_Frecuencia_Impedancia(Fp_Hz,Rg_Ohm,Lista_G_Filtro_Des)
+            # 6 Dibujo el circuito desnormalizado frecuencia e impedancia
+            FPB.Dibujar_Filtro_Desnormalizado(Lista_G_Filtro_Des_Fre_Imp,InstanciaFiltro)
+            
         elif (tipo_Filtro == "Chebyshev") :
             # 1 Dibujar la plantilla y plantilla normalizada del filtro
             FPB.Dibujar_Plantilla_Filtro(InstanciaFiltro,id_Filtro,Ap,As,Fp,Fs,OMEGAp,OMEGAs,Etiqueta_F,Etiqueta_DB,escala_max_F,escala_max_DB)
@@ -363,3 +472,7 @@ class FiltroPasoBajo:
             (Lista_G_Filtro) = FPB.Prototipo_Filtro_Chebyshev(OrdenFiltro)
             # 4 Dibujo los prototipos del filtro
             FPB.Dibujar_Prototipo_Filtro(Lista_G_Filtro,InstanciaFiltro)
+            # 5 Desnormalizacion en frecuencia a Wp y en resistencia generador Rg
+            (Lista_G_Filtro_Des_Fre_Imp) =FPB.Desnormalizar_Frecuencia_Impedancia(Fp_Hz,Rg_Ohm,Lista_G_Filtro)
+            # 6 Dibujo el circuito desnormalizado frecuencia e impedancia
+            FPB.Dibujar_Filtro_Desnormalizado(Lista_G_Filtro_Des_Fre_Imp,InstanciaFiltro)
